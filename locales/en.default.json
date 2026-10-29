@@ -1,0 +1,82 @@
+{
+  "404": {
+    "title": "404",
+    "not_found": "Page not found.",
+    "back_to_shopping": "Back to shopping"
+  },
+  "blog": {
+    "article_comments": "Comments",
+    "article_metadata_html": "{{ date }} by {{ author }}",
+    "comment_form_body": "Comment",
+    "comment_form_email": "Email",
+    "comment_form_name": "Name",
+    "comment_form_submit": "Post",
+    "comment_form_title": "Add a comment"
+  },
+  "cart": {
+    "checkout": "Checkout",
+    "title": "Your Cart",
+    "shopping_cart": "Shopping Cart",
+    "update": "Update",
+    "remove": "Remove",
+    "empty": "Your cart is empty",
+    "empty_subtext": "Looks like you haven't added anything to your cart yet.",
+    "continue_shopping": "Continue shopping",
+    "subtotal": "Subtotal",
+    "order_note": "Order special instructions",
+    "note_placeholder": "Special instructions for seller...",
+    "free_shipping": "Free Shipping",
+    "view_cart": "View cart",
+    "taxes_and_shipping_at_checkout": "Taxes and shipping calculated at checkout.",
+    "item": "Product",
+    "price": "Price",
+    "quantity": "Quantity",
+    "total": "Total",
+    "savings": "You save",
+    "secure_checkout": "100% Secure Checkout",
+    "discount_code": "Discount code",
+    "apply_discount": "Apply",
+    "discount_applied": "Discount applied",
+    "discount_invalid": "Please enter a valid discount code.",
+    "discount_not_applicable": "This discount code is not valid or does not apply to your cart.",
+    "remove_discount": "Remove discount",
+    "have_discount": "Have a discount code?"
+  },
+  "customers": {
+    "login": {
+      "email": "Email",
+      "password": "Password",
+      "submit": "Sign in",
+      "title": "Login"
+    }
+  },
+  "collections": {
+    "title": "Collections"
+  },
+  "gift_card": {
+    "add_to_apple_wallet": "Add to Apple Wallet",
+    "card": "Gift card",
+    "expired": "This gift card has expired",
+    "expires_on": "Expires on {{ expires_on }}",
+    "use_at_checkout": "Use this gift card at checkout"
+  },
+  "password": {
+    "title": "This shop is private",
+    "password": "Password",
+    "enter": "Enter"
+  },
+  "search": {
+    "title": "Search",
+    "placeholder": "Search products, collections, or topics",
+    "submit": "Search",
+    "no_results_html": "No results found for {{ terms }}",
+    "results_for_html": "{{ count }} results found for {{ terms }}",
+    "view_all_results": "View all results for \"{{ terms }}\"",
+    "suggestions": "Suggestions",
+    "products": "Products",
+    "clear": "Clear search",
+    "close": "Close search",
+    "recommended_title": "Recommended for you",
+    "view_all": "View all"
+  }
+}

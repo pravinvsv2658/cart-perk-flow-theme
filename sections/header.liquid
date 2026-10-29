@@ -1,0 +1,199 @@
+<header>
+  <h2 class="header__title">
+    {{ shop.name | link_to: routes.root_url }}
+  </h2>
+
+  <div class="header__menu">
+    {% for link in section.settings.menu.links %}
+      {{ link.title | link_to: link.url }}
+    {% endfor %}
+  </div>
+
+  <div class="header__icons">
+    {%- if section.settings.enable_search -%}
+      <button
+        type="button"
+        class="header__icon-btn header__search-trigger"
+        aria-label="{{ 'search.title' | t }}"
+        data-header-search-trigger
+      >
+        {% render 'icon', icon: 'search', width: 24, height: 24 %}
+      </button>
+    {%- endif -%}
+
+    {% if shop.customer_accounts_enabled %}
+      <a href="{{ routes.account_url }}" class="header__account-link" aria-label="Account">
+        {% render 'icon', icon: 'account', width: 24, height: 24 %}
+      </a>
+    {% endif %}
+
+    <a href="{{ routes.cart_url }}" class="header__cart-link" data-cart-trigger aria-label="{{ 'cart.title' | t }}">
+      <span class="header__cart-count" data-cart-count>{{ cart.item_count }}</span>
+      {% render 'icon', icon: 'cart', width: 24, height: 24 %}
+    </a>
+  </div>
+</header>
+
+{%- if section.settings.enable_search -%}
+  {{ 'header-search.css' | asset_url | stylesheet_tag }}
+  <script src="{{ 'header-search.js' | asset_url }}" defer="defer"></script>
+  {% render 'header-search',
+    search_type: section.settings.search_type,
+    search_layout: section.settings.search_layout,
+    products_layout: section.settings.search_products_layout,
+    show_image: section.settings.search_show_image,
+    show_vendor: section.settings.search_show_vendor,
+    recommended_collection: section.settings.search_recommended_collection,
+    enable_add_to_cart: section.settings.search_enable_add_to_cart
+  %}
+{%- endif -%}
+
+{% stylesheet %}
+  header {
+    height: 5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  header a {
+    position: relative;
+    text-decoration: none;
+    color: var(--color-foreground);
+  }
+  header .header__icon-btn {
+    background: transparent;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    color: var(--color-foreground);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: opacity 0.2s;
+  }
+  header .header__icon-btn:hover {
+    opacity: 0.75;
+  }
+  header .header__cart-link {
+    display: inline-flex;
+    align-items: center;
+    position: relative;
+  }
+  header .header__cart-count {
+    position: absolute;
+    top: -5px;
+    right: -8px;
+    background: var(--color-foreground);
+    color: var(--color-background);
+    border-radius: 9999px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    min-width: 1.25rem;
+    height: 1.25rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 0.25rem;
+    line-height: 1;
+  }
+  header svg {
+    width: 2rem;
+  }
+  header .header__menu,
+  header .header__icons {
+    display: flex;
+    gap: 1.25rem;
+    align-items: center;
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "t:general.header",
+  "settings": [
+    {
+      "type": "link_list",
+      "id": "menu",
+      "label": "t:labels.menu"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_search",
+      "label": "Enable search",
+      "default": true
+    },
+    {
+      "type": "select",
+      "id": "search_type",
+      "label": "Search type",
+      "options": [
+        {
+          "value": "normal",
+          "label": "Standard"
+        },
+        {
+          "value": "predictive",
+          "label": "Predictive"
+        }
+      ],
+      "default": "predictive"
+    },
+    {
+      "type": "select",
+      "id": "search_layout",
+      "label": "Search layout",
+      "options": [
+        {
+          "value": "current",
+          "label": "Current (modal)"
+        },
+        {
+          "value": "drawer",
+          "label": "Drawer"
+        }
+      ],
+      "default": "current"
+    },
+    {
+      "type": "select",
+      "id": "search_products_layout",
+      "label": "Products layout",
+      "options": [
+        {
+          "value": "grid",
+          "label": "Standard grid"
+        },
+        {
+          "value": "slider",
+          "label": "Slider"
+        }
+      ],
+      "default": "grid"
+    },
+    {
+      "type": "checkbox",
+      "id": "search_show_image",
+      "label": "Show product image",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "search_show_vendor",
+      "label": "Show product vendor",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "search_enable_add_to_cart",
+      "label": "Enable add to cart",
+      "default": true
+    },
+    {
+      "type": "collection",
+      "id": "search_recommended_collection",
+      "label": "Recommended collection",
+      "info": "Displays products from this collection when search opens before typing."
+    }
+  ]
+}
+{% endschema %}

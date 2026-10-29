@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="{{ request.locale.iso_code }}">
+  <head>
+    {% # Inlined CSS Variables %}
+    {% render 'css-variables' %}
+
+    {% # Load and preload the global and component CSS %}
+    {{ 'main-style.css' | asset_url | stylesheet_tag: preload: true }}
+    {{ 'component-card.css' | asset_url | stylesheet_tag: preload: true }}
+    {{ 'cart-drawer.css' | asset_url | stylesheet_tag: preload: true }}
+
+    {% # Global theme configuration %}
+    <script>
+      window.theme = window.theme || {};
+      window.theme.cartType = {{ settings.cart_type | default: 'drawer' | json }};
+      window.theme.routes = {
+        cart_url: {{ routes.cart_url | json }},
+        cart_add_url: {{ routes.cart_add_url | json }},
+        cart_change_url: {{ routes.cart_change_url | json }},
+        cart_update_url: {{ routes.cart_update_url | json }}
+      };
+      window.theme.moneyFormat = {{ shop.money_format | json }};
+      window.theme.customColorSwatches = {{ settings.custom_color_swatches | default: '' | json }};
+    </script>
+
+    {% # Global Cart Utils, Add to Cart & Cart Drawer Components %}
+    <script src="{{ 'cart-utils.js' | asset_url }}" defer="defer"></script>
+    <script src="{{ 'product-form.js' | asset_url }}" defer="defer"></script>
+    <script src="{{ 'cart-drawer.js' | asset_url }}" defer="defer"></script>
+    <script src="{{ 'cart-discount.js' | asset_url }}" defer="defer"></script>
+
+    {% # Social, title, etc. %}
+    {% render 'meta-tags' %}
+
+    {% # Slick Slider & jQuery CDN %}
+    {% # theme-check-disable RemoteAsset %}
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick.css">
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js" defer="defer"></script>
+    <script src="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick.min.js" defer="defer"></script>
+    {% # theme-check-enable RemoteAsset %}
+
+    {{ content_for_header }}
+  </head>
+
+  <body>
+    {% sections 'header-group' %}
+
+    {{ content_for_layout }}
+
+    {% sections 'footer-group' %}
+
+    {% # Global Cart Drawer %}
+    {% section 'cart-drawer' %}
+  </body>
+</html>

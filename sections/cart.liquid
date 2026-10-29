@@ -1,0 +1,329 @@
+{{ 'cart-page.css' | asset_url | stylesheet_tag }}
+<script src="{{ 'cart-page.js' | asset_url }}" defer="defer"></script>
+
+<div class="cart-page" data-section-id="{{ section.id }}" data-cart-page-section>
+  <div class="shopify-section">
+    {%- # Cart Page Header -%}
+    <div class="cart-page__header">
+      <div class="cart-page__title-row">
+        <h1 class="cart-page__title">{{ 'cart.shopping_cart' | t }}</h1>
+        <span class="cart-page__count {% if cart.item_count == 0 %}hidden{% endif %}" data-cart-page-count>
+          ({{ cart.item_count }}
+          {{ 'cart.item' | t | downcase }})
+        </span>
+      </div>
+
+      {%- # Free Shipping Progress Bar -%}
+      {%- if settings.cart_show_free_shipping -%}
+        {%- assign threshold_cents = settings.cart_free_shipping_threshold | default: 50 | times: 100 -%}
+        {%- assign diff_cents = threshold_cents | minus: cart.total_price -%}
+        <div
+          class="cart-page__shipping-bar {% if cart.item_count == 0 %}hidden{% endif %}"
+          data-cart-page-shipping-bar
+          data-threshold="{{ threshold_cents }}"
+        >
+          <div class="cart-page__shipping-message" data-cart-page-shipping-message>
+            {%- if cart.total_price >= threshold_cents and cart.item_count > 0 -%}
+              {{ 'cart.free_shipping' | t }}: 🎉 You've unlocked Free Shipping!
+            {%- else -%}
+              Add {{ diff_cents | money }} more to unlock Free Shipping!
+            {%- endif -%}
+          </div>
+          <div class="cart-page__shipping-track" aria-hidden="true">
+            {%- assign progress_pct = cart.total_price | times: 100 | divided_by: threshold_cents -%}
+            {%- if progress_pct > 100 -%}{%- assign progress_pct = 100 -%}{%- endif -%}
+            <div
+              class="cart-page__shipping-progress"
+              data-cart-page-shipping-progress
+              style="width: {{ progress_pct }}%;"
+            ></div>
+          </div>
+        </div>
+      {%- endif -%}
+    </div>
+
+    {%- # Empty State -%}
+    <div class="cart-page__empty-container {% if cart.item_count > 0 %}hidden{% endif %}" data-cart-page-empty>
+      <div class="cart-page__empty-icon" aria-hidden="true">
+        {% render 'icon', icon: 'bag', width: 64, height: 64 %}
+      </div>
+      <h2 class="cart-page__empty-title">{{ 'cart.empty' | t }}</h2>
+      <p class="cart-page__empty-subtext">{{ 'cart.empty_subtext' | t }}</p>
+      <a href="{{ routes.all_products_collection_url | default: '/collections/all' }}" class="btn cart-page__empty-btn">
+        {{ 'cart.continue_shopping' | t }}
+      </a>
+    </div>
+
+    {%- # Cart Form & 2-Column Layout -%}
+    <div class="cart-page__content-wrapper {% if cart.item_count == 0 %}hidden{% endif %}" data-cart-page-content>
+      <form action="{{ routes.cart_url }}" method="post" id="cart-form" class="cart-page__form">
+        <input type="hidden" name="discount" value="" data-discount-hidden-input>
+        <div class="cart-page__layout">
+          {%- # Left Column: Items Card + Notes -%}
+          <div class="cart-page__items-col">
+            <div class="cart-page__items-card">
+              <div class="cart-page__table-header" aria-hidden="true">
+                <span>{{ 'cart.item' | t }}</span>
+                <span class="cart-page__table-header-col--center">{{ 'cart.price' | t }}</span>
+                <span class="cart-page__table-header-col--center">{{ 'cart.quantity' | t }}</span>
+                <span class="cart-page__table-header-col--right">{{ 'cart.total' | t }}</span>
+              </div>
+
+              <div class="cart-page__error-banner hidden" data-cart-error-banner role="alert">
+                <span class="cart-page__error-icon" aria-hidden="true">
+                  {% render 'icon', icon: 'warning', width: 16, height: 16 %}
+                </span>
+                <span class="cart-page__error-text" data-cart-error-text></span>
+              </div>
+              <template id="cart-page-error-icon-template">
+                <span class="cart-page__error-icon" aria-hidden="true">
+                  {% render 'icon', icon: 'warning', width: 14, height: 14 %}
+                </span>
+              </template>
+
+              <div class="cart-page__items-list" data-cart-page-items>
+                {%- for item in cart.items -%}
+                  <div
+                    class="cart-page__item"
+                    data-cart-item-row
+                    data-key="{{ item.key }}"
+                    data-variant-id="{{ item.id }}"
+                  >
+                    {%- # Product Info & Image -%}
+                    <div class="cart-page__item-product">
+                      <a href="{{ item.url }}" class="cart-page__item-image-link">
+                        {%- if item.image != blank -%}
+                          <img
+                            src="{{ item.image | image_url: width: 200 }}"
+                            alt="{{ item.title | escape }}"
+                            class="cart-page__item-image"
+                            width="90"
+                            height="90"
+                            loading="lazy"
+                          >
+                        {%- else -%}
+                          <div class="cart-page__item-image-placeholder">
+                            {{ 'image' | placeholder_svg_tag }}
+                          </div>
+                        {%- endif -%}
+                      </a>
+
+                      <div class="cart-page__item-info">
+                        <a href="{{ item.url }}" class="cart-page__item-title">
+                          {{ item.product.title }}
+                        </a>
+
+                        {%- unless item.product.has_only_default_variant -%}
+                          {%- for option in item.options_with_values -%}
+                            <span class="cart-page__item-option">{{ option.name }}: {{ option.value }}</span>
+                          {%- endfor -%}
+                        {%- endunless -%}
+
+                        {%- if item.selling_plan_allocation -%}
+                          <span class="cart-page__item-option">
+                            {{- item.selling_plan_allocation.selling_plan.name -}}
+                          </span>
+                        {%- endif -%}
+
+                        <button
+                          type="button"
+                          class="cart-page__item-remove"
+                          data-cart-page-remove
+                          data-key="{{ item.key }}"
+                          aria-label="{{ 'cart.remove' | t }}: {{ item.product.title | escape }}"
+                        >
+                          {% render 'icon', icon: 'trash', width: 14, height: 14 %}
+                          <span>{{ 'cart.remove' | t }}</span>
+                        </button>
+                      </div>
+                    </div>
+
+                    {%- # Unit Price -%}
+                    <div class="cart-page__item-price-col">
+                      <span class="cart-page__item-price" data-cart-item-final-price>
+                        {%- if item.discounted_price < item.original_price -%}
+                          {{ item.discounted_price | money }}
+                        {%- else -%}
+                          {{ item.final_price | money }}
+                        {%- endif -%}
+                      </span>
+                      {%- if item.original_price > item.final_price or item.original_price > item.discounted_price -%}
+                        <span class="cart-page__item-price-compare" data-cart-item-original-price>
+                          {{- item.original_price | money -}}
+                        </span>
+                      {%- endif -%}
+                    </div>
+
+                    {%- # Quantity Stepper -%}
+                    <div class="cart-page__qty-wrapper">
+                      <div class="cart-page__qty-stepper">
+                        <button
+                          type="button"
+                          class="cart-page__qty-btn"
+                          data-cart-page-qty="decrease"
+                          data-key="{{ item.key }}"
+                          aria-label="Decrease quantity"
+                        >
+                          −
+                        </button>
+                        <input
+                          type="number"
+                          name="updates[]"
+                          class="cart-page__qty-input"
+                          value="{{ item.quantity }}"
+                          min="0"
+                          data-cart-page-qty-input
+                          data-key="{{ item.key }}"
+                          aria-label="{{ 'cart.quantity' | t }}"
+                        >
+                        <button
+                          type="button"
+                          class="cart-page__qty-btn"
+                          data-cart-page-qty="increase"
+                          data-key="{{ item.key }}"
+                          aria-label="Increase quantity"
+                        >
+                          +
+                        </button>
+                      </div>
+                    </div>
+
+                    {%- # Line Item Total -%}
+                    <div class="cart-page__item-total" data-cart-item-total>
+                      <span class="cart-page__item-total-final" data-cart-item-line-final>
+                        {%- if item.line_price < item.original_line_price -%}
+                          {{ item.line_price | money }}
+                        {%- else -%}
+                          {{ item.final_line_price | money }}
+                        {%- endif -%}
+                      </span>
+                      {%- if item.original_line_price > item.final_line_price
+                        or item.original_line_price > item.line_price
+                      -%}
+                        <s class="cart-page__item-total-original" data-cart-item-line-original>
+                          {{- item.original_line_price | money -}}
+                        </s>
+                      {%- endif -%}
+                      <div
+                        class="cart-page__item-discounts {% unless item.line_level_discount_allocations.size > 0 or item.discounts.size > 0 %}hidden{% endunless %}"
+                        data-cart-item-discounts
+                      >
+                        {%- for alloc in item.line_level_discount_allocations -%}
+                          <span class="cart-page__item-discount-tag">
+                            {% render 'icon', icon: 'tag' %}
+                            <span>{{ alloc.discount_application.title }} (-{{ alloc.amount | money }})</span>
+                          </span>
+                        {%- endfor -%}
+                        {%- for disc in item.discounts -%}
+                          <span class="cart-page__item-discount-tag">
+                            {% render 'icon', icon: 'tag' %}
+                            <span>{{ disc.title }} (-{{ disc.amount | money }})</span>
+                          </span>
+                        {%- endfor -%}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="cart-page__item-error hidden" data-item-error data-key="{{ item.key }}" role="alert">
+                    <span class="cart-page__error-icon" aria-hidden="true">
+                      {% render 'icon', icon: 'warning', width: 14, height: 14 %}
+                    </span>
+                    <span class="cart-page__error-text" data-item-error-text></span>
+                  </div>
+                {%- endfor -%}
+              </div>
+            </div>
+
+            {%- # Order Notes Snippet -%}
+            {% render 'cart-note', context: 'page' %}
+          </div>
+
+          {%- # Right Column: Sticky Order Summary Card -%}
+          <div class="cart-page__summary-col{% if section.settings.enable_sticky_order_summary %} cart-page__summary-col--sticky{% endif %}">
+            <div class="cart-page__summary-card">
+              <h2 class="cart-page__summary-heading">Order Summary</h2>
+
+              <div class="cart-page__summary-lines">
+                <div class="cart-page__summary-line">
+                  <span>{{ 'cart.subtotal' | t }}</span>
+                  <span data-cart-subtotal>{{ cart.original_total_price | default: cart.total_price | money }}</span>
+                </div>
+
+                <div
+                  class="cart-page__summary-line cart-page__summary-line--savings {% unless cart.total_discount > 0 %}hidden{% endunless %}"
+                  data-cart-savings-row
+                >
+                  <span class="cart-page__savings-label">
+                    <span>{{ 'cart.savings' | t }}</span>
+                    <span class="cart-page__savings-code" data-cart-savings-code></span>
+                  </span>
+                  <span data-cart-savings>-{{ cart.total_discount | money }}</span>
+                </div>
+              </div>
+
+              {%- # Discount Code Snippet -%}
+              {% render 'cart-discount', context: 'page' %}
+
+              <div class="cart-page__summary-total">
+                <span>Total</span>
+                <span class="cart-page__summary-total-amount" data-cart-total>{{ cart.total_price | money }}</span>
+              </div>
+
+              <p class="cart-page__summary-disclaimer">
+                {{ 'cart.taxes_and_shipping_at_checkout' | t }}
+              </p>
+
+              <button
+                type="submit"
+                name="checkout"
+                class="btn cart-page__checkout-btn"
+              >
+                {% render 'icon', icon: 'lock', width: 18, height: 18 %}
+                <span>
+                  {{- 'cart.checkout' | t }} •
+                  <span data-cart-checkout-subtotal>{{ cart.total_price | money }}</span></span
+                >
+              </button>
+
+              <a
+                href="{{ routes.all_products_collection_url | default: '/collections/all' }}"
+                class="cart-page__continue-btn"
+              >
+                {{ 'cart.continue_shopping' | t }}
+              </a>
+
+              <div class="cart-page__trust-badges">
+                <div class="cart-page__trust-item">
+                  {% render 'icon', icon: 'lock', width: 16, height: 16 %}
+                  <span>100% Secure Encrypted Checkout</span>
+                </div>
+                <div class="cart-page__trust-item">
+                  {% render 'icon', icon: 'package', width: 16, height: 16 %}
+                  <span>Fast Tracked Worldwide Shipping</span>
+                </div>
+                <div class="cart-page__trust-item">
+                  {% render 'icon', icon: 'return', width: 16, height: 16 %}
+                  <span>Hassle-Free 30-Day Returns</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "Cart",
+  "settings": [
+    {
+      "type": "checkbox",
+      "id": "enable_sticky_order_summary",
+      "label": "Enable sticky order summary",
+      "default": true
+    }
+  ]
+}
+{% endschema %}

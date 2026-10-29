@@ -1,0 +1,364 @@
+/**
+ * Main Global Stylesheet - CartPerksFlow Theme
+ * Contains resets, typography, layout grid utilities, global states & controls
+ */
+
+/* ==========================================================================
+   CSS Reset & Base HTML Elements
+   ========================================================================== */
+* {
+  box-sizing: border-box;
+  margin: 0;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  min-height: 100svh;
+  font-family: var(--font-primary--family);
+  background-color: var(--color-background);
+  color: var(--color-foreground);
+}
+
+html:has(dialog[scroll-lock][open], details[scroll-lock][open]) {
+  overflow: hidden;
+}
+
+img,
+picture,
+video,
+canvas,
+svg {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+input,
+textarea,
+select {
+  font: inherit;
+  border-radius: var(--style-border-radius-inputs);
+}
+
+select {
+  background-color: var(--color-background);
+  color: currentcolor;
+}
+
+dialog {
+  background-color: var(--color-background);
+  color: var(--color-foreground);
+}
+
+p {
+  text-wrap: pretty;
+}
+
+p,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  overflow-wrap: break-word;
+}
+
+p:empty {
+  display: none;
+}
+
+:is(p, h1, h2, h3, h4, h5, h6):first-child,
+:empty:first-child + :where(p, h1, h2, h3, h4, h5, h6) {
+  margin-block-start: 0;
+}
+
+:is(p, h1, h2, h3, h4, h5, h6):last-child,
+:where(p, h1, h2, h3, h4, h5, h6) + :has(+ :empty:last-child) {
+  margin-block-end: 0;
+}
+
+/* ==========================================================================
+   Section Layout Utilities
+   ========================================================================== */
+
+/**
+ * Grid that enables both full-width and constrained layouts depending on child class.
+ * Default: centered within page max-width.
+ * With .full-width: spans full viewport width.
+ */
+.shopify-section {
+  --content-width: min(
+    calc(var(--page-width) - var(--page-margin) * 2),
+    calc(100% - var(--page-margin) * 2)
+  );
+  --content-margin: minmax(var(--page-margin), 1fr);
+  --content-grid: var(--content-margin) var(--content-width) var(--content-margin);
+
+  position: relative;
+  grid-template-columns: var(--content-grid);
+  display: grid;
+  width: 100%;
+}
+
+.shopify-section > * {
+  grid-column: 2;
+}
+
+.shopify-section > .full-width {
+  grid-column: 1 / -1;
+}
+
+/* ==========================================================================
+   Global Utilities & State Modifiers
+   ========================================================================== */
+
+/* Universal Hidden Utility */
+.hidden,
+[hidden] {
+  display: none !important;
+}
+
+/* Universal Disabled State */
+:disabled,
+[disabled],
+[aria-disabled="true"],
+.disabled,
+.slick-disabled {
+  cursor: not-allowed !important;
+  pointer-events: auto !important;
+}
+
+button:disabled,
+button[aria-disabled="true"],
+button.slick-disabled,
+input:disabled,
+select:disabled,
+textarea:disabled,
+.btn:disabled,
+.btn[aria-disabled="true"] {
+  opacity: 0.45;
+  cursor: not-allowed !important;
+  pointer-events: auto !important;
+}
+
+/* ==========================================================================
+   Global Slider Navigation Arrows (Next / Prev)
+   ========================================================================== */
+
+.slider-arrow,
+.featured-collection__arrow {
+  position: relative;
+  z-index: 50;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 9999px;
+  background: rgba(var(--color-foreground-rgb), 0.08);
+  border: 1px solid rgba(var(--color-foreground-rgb), 0.15);
+  color: var(--color-foreground, currentColor);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  cursor: pointer;
+  pointer-events: auto !important;
+  transition: all 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
+  flex-shrink: 0;
+  box-sizing: border-box;
+}
+
+.slider-arrow:hover:not(:disabled):not(.slick-disabled),
+.featured-collection__arrow:hover:not(:disabled):not(.slick-disabled) {
+  transform: scale(1.06);
+}
+
+.slider-arrow:disabled,
+.slider-arrow.slick-disabled,
+.slider-arrow[aria-disabled="true"],
+.featured-collection__arrow:disabled,
+.featured-collection__arrow.slick-disabled,
+.featured-collection__arrow[aria-disabled="true"] {
+  opacity: 0.35 !important;
+  cursor: not-allowed !important;
+  pointer-events: auto !important;
+  transform: none !important;
+}
+
+/* Arrow Designs */
+.slider-arrow--glass,
+.slider-arrows--glass .slider-arrow,
+.featured-collection__arrow--glass,
+.featured-collection__arrows--glass .featured-collection__arrow {
+  background: rgba(var(--color-background-rgb), 0.72);
+  backdrop-filter: blur(14px) saturate(180%);
+  -webkit-backdrop-filter: blur(14px) saturate(180%);
+  border: 1px solid rgba(var(--color-foreground-rgb), 0.16);
+  color: var(--color-foreground, currentColor);
+  box-shadow:
+    0 4px 16px rgba(0, 0, 0, 0.08),
+    0 0 0 1px rgba(255, 255, 255, 0.25) inset;
+}
+
+.slider-arrow--glass:hover:not(:disabled):not(.slick-disabled),
+.slider-arrows--glass .slider-arrow:hover:not(:disabled):not(.slick-disabled),
+.featured-collection__arrow--glass:hover:not(:disabled):not(.slick-disabled),
+.featured-collection__arrows--glass .featured-collection__arrow:hover:not(:disabled):not(.slick-disabled) {
+  background: rgba(var(--color-background-rgb), 0.92);
+  box-shadow:
+    0 8px 24px rgba(0, 0, 0, 0.12),
+    0 0 0 1px rgba(var(--color-foreground-rgb), 0.2) inset;
+}
+
+.slider-arrow--solid,
+.slider-arrows--solid .slider-arrow,
+.featured-collection__arrow--solid,
+.featured-collection__arrows--solid .featured-collection__arrow {
+  background: var(--color-foreground, #000000);
+  color: var(--color-background, #ffffff);
+  border: 1px solid rgba(var(--color-background-rgb), 0.2);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.16);
+}
+
+.slider-arrow--solid:hover:not(:disabled):not(.slick-disabled),
+.slider-arrows--solid .slider-arrow:hover:not(:disabled):not(.slick-disabled),
+.featured-collection__arrow--solid:hover:not(:disabled):not(.slick-disabled),
+.featured-collection__arrows--solid .featured-collection__arrow:hover:not(:disabled):not(.slick-disabled) {
+  opacity: 0.92;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.22);
+}
+
+.slider-arrow--minimal,
+.slider-arrows--minimal .slider-arrow,
+.featured-collection__arrow--minimal,
+.featured-collection__arrows--minimal .featured-collection__arrow {
+  background: transparent;
+  border: 1.5px solid var(--color-foreground, currentColor);
+  color: var(--color-foreground, currentColor);
+}
+
+.slider-arrow--minimal:hover:not(:disabled):not(.slick-disabled),
+.slider-arrows--minimal .slider-arrow:hover:not(:disabled):not(.slick-disabled),
+.featured-collection__arrow--minimal:hover:not(:disabled):not(.slick-disabled),
+.featured-collection__arrows--minimal .featured-collection__arrow:hover:not(:disabled):not(.slick-disabled) {
+  background: rgba(var(--color-foreground-rgb), 0.08);
+}
+
+.slider-arrow--square,
+.slider-arrows--square .slider-arrow,
+.featured-collection__arrow--square,
+.featured-collection__arrows--square .featured-collection__arrow {
+  border-radius: 8px;
+  background: rgba(var(--color-background-rgb), 0.75);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(var(--color-foreground-rgb), 0.18);
+  color: var(--color-foreground, currentColor);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+}
+
+.slider-arrow--square:hover:not(:disabled):not(.slick-disabled),
+.slider-arrows--square .slider-arrow:hover:not(:disabled):not(.slick-disabled),
+.featured-collection__arrow--square:hover:not(:disabled):not(.slick-disabled),
+.featured-collection__arrows--square .featured-collection__arrow:hover:not(:disabled):not(.slick-disabled) {
+  background: rgba(var(--color-background-rgb), 0.92);
+}
+
+/* Arrow Sizes */
+.slider-arrow--small,
+.slider-arrows--small .slider-arrow,
+.featured-collection__arrow--small,
+.featured-collection__arrows--small .featured-collection__arrow {
+  width: 2.25rem;
+  height: 2.25rem;
+}
+
+.slider-arrow--small svg,
+.slider-arrows--small .slider-arrow svg,
+.featured-collection__arrow--small svg,
+.featured-collection__arrows--small .featured-collection__arrow svg {
+  width: 15px;
+  height: 15px;
+}
+
+.slider-arrow--medium,
+.slider-arrows--medium .slider-arrow,
+.featured-collection__arrow--medium,
+.featured-collection__arrows--medium .featured-collection__arrow {
+  width: 2.75rem;
+  height: 2.75rem;
+}
+
+.slider-arrow--medium svg,
+.slider-arrows--medium .slider-arrow svg,
+.featured-collection__arrow--medium svg,
+.featured-collection__arrows--medium .featured-collection__arrow svg {
+  width: 18px;
+  height: 18px;
+}
+
+.slider-arrow--large,
+.slider-arrows--large .slider-arrow,
+.featured-collection__arrow--large,
+.featured-collection__arrows--large .featured-collection__arrow {
+  width: 3.25rem;
+  height: 3.25rem;
+}
+
+.slider-arrow--large svg,
+.slider-arrows--large .slider-arrow svg,
+.featured-collection__arrow--large svg,
+.featured-collection__arrows--large .featured-collection__arrow svg {
+  width: 22px;
+  height: 22px;
+}
+
+/* Side Floating Arrows */
+.slider-arrow--side,
+.featured-collection__arrow--side {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 50 !important;
+  pointer-events: auto !important;
+}
+
+.slider-arrow--side:hover:not(:disabled):not(.slick-disabled),
+.featured-collection__arrow--side:hover:not(:disabled):not(.slick-disabled) {
+  transform: translateY(-50%) scale(1.08) !important;
+}
+
+.slider-arrow--side:disabled,
+.slider-arrow--side.slick-disabled,
+.slider-arrow--side[aria-disabled="true"],
+.featured-collection__arrow--side:disabled,
+.featured-collection__arrow--side.slick-disabled,
+.featured-collection__arrow--side[aria-disabled="true"] {
+  transform: translateY(-50%) !important;
+  opacity: 0.35 !important;
+  pointer-events: auto !important;
+  cursor: not-allowed !important;
+}
+
+.slider-arrow--side-prev,
+.featured-collection__arrow--side-prev {
+  left: -1.5rem;
+}
+
+.slider-arrow--side-next,
+.featured-collection__arrow--side-next {
+  right: -1.5rem;
+}
+
+@media screen and (max-width: 1250px) {
+  .slider-arrow--side-prev,
+  .featured-collection__arrow--side-prev {
+    left: 0.25rem;
+  }
+  .slider-arrow--side-next,
+  .featured-collection__arrow--side-next {
+    right: 0.25rem;
+  }
+}

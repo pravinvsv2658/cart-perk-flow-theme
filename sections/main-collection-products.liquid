@@ -1,0 +1,353 @@
+{{ 'main-collection-products.css' | asset_url | stylesheet_tag }}
+<script src="{{ 'main-collection-products.js' | asset_url }}" defer="defer"></script>
+
+{%- liquid
+  assign qv_mode = section.settings.quick_view_mode | default: 'standard'
+  assign enable_quick_view_assets = false
+  if qv_mode != 'none'
+    assign enable_quick_view_assets = true
+  endif
+-%}
+
+{%- if enable_quick_view_assets -%}
+  {{ 'quick-view.css' | asset_url | stylesheet_tag }}
+  <script src="{{ 'quick-view.js' | asset_url }}" defer="defer"></script>
+  {% render 'quick-view-modal',
+    position: section.settings.quick_view_position,
+    variant_style: settings.variant_style,
+    section_id: section.id
+  %}
+{%- endif -%}
+
+{%- liquid
+  assign section_id = section.id
+  assign current_scheme = section.settings.color_scheme
+  assign products_per_page = section.settings.products_per_page | default: 16
+-%}
+
+{%- style -%}
+  #CollectionSection-{{ section_id }} {
+    --section-pt: {{ section.settings.padding_top }}px;
+    --section-pb: {{ section.settings.padding_bottom }}px;
+    --columns-desktop: {{ section.settings.columns_desktop }};
+    --columns-mobile: {{ section.settings.columns_mobile }};
+    --card-corner-radius: {% if section.settings.enable_rounded_corners %}{{ section.settings.corner_radius }}px{% else %}0px{% endif %};
+  }
+
+  @media screen and (max-width: 989px) {
+    #CollectionSection-{{ section_id }} .collection__grid {
+      grid-template-columns: repeat({% if section.settings.columns_desktop < 3 %}{{ section.settings.columns_desktop }}{% else %}3{% endif %}, minmax(0, 1fr));
+    }
+  }
+
+  @media screen and (max-width: 749px) {
+    #CollectionSection-{{ section_id }} .collection__grid {
+      grid-template-columns: repeat({{ section.settings.columns_mobile | default: 2 }}, minmax(0, 1fr));
+    }
+  }
+{%- endstyle -%}
+
+<section
+  id="CollectionSection-{{ section_id }}"
+  class="collection-section {% if section.settings.full_width %}full-width{% else %}collection-section--contained{% endif %} color-{{ current_scheme.id | default: current_scheme }}"
+  data-section-id="{{ section_id }}"
+>
+  {%- paginate collection.products by products_per_page -%}
+    <div class="collection__header collection__header--{{ section.settings.header_alignment }}">
+      {%- if section.settings.show_product_count -%}
+        <div class="collection__count-wrapper">
+          <span class="collection__count-badge">
+            {{ collection.products_count }}
+            {{ collection.products_count | pluralize: 'product', 'products' }}
+          </span>
+        </div>
+      {%- endif -%}
+
+      <h1 class="collection__heading">
+        {{ collection.title }}
+      </h1>
+
+      {%- if section.settings.show_collection_description and collection.description != blank -%}
+        <div class="collection__description">
+          {{ collection.description }}
+        </div>
+      {%- endif -%}
+    </div>
+
+    {%- if collection.products.size > 0 -%}
+      <div class="collection__grid">
+        {%- for product in collection.products -%}
+          {% render 'product-card',
+            product: product,
+            media_aspect_ratio: section.settings.card_image_ratio,
+            show_secondary_image: section.settings.show_secondary_image,
+            show_vendor: section.settings.show_vendor,
+            show_rating: section.settings.show_rating,
+            quick_view_mode: qv_mode,
+            show_sale_badge: section.settings.show_sale_badge,
+            show_stock_badge: section.settings.show_stock_badge,
+            enable_glass: section.settings.enable_glass_cards,
+            section_id: section_id
+          %}
+        {%- endfor -%}
+      </div>
+
+      {%- if paginate.pages > 1 -%}
+        <nav class="collection__pagination" aria-label="Pagination">
+          {%- if paginate.previous -%}
+            <a
+              href="{{ paginate.previous.url }}"
+              class="collection__pagination-arrow collection__pagination-prev"
+              aria-label="Previous page"
+            >
+              {% render 'icon', icon: 'arrow-left', width: 18, height: 18 %}
+            </a>
+          {%- endif -%}
+
+          <div class="collection__pagination-pages">
+            {%- for part in paginate.parts -%}
+              {%- if part.is_link -%}
+                <a href="{{ part.url }}" class="collection__pagination-link">{{ part.title }}</a>
+              {%- else -%}
+                {%- if part.title == paginate.current_page -%}
+                  <span class="collection__pagination-link is-current" aria-current="page">{{ part.title }}</span>
+                {%- else -%}
+                  <span class="collection__pagination-ellipsis">{{ part.title }}</span>
+                {%- endif -%}
+              {%- endif -%}
+            {%- endfor -%}
+          </div>
+
+          {%- if paginate.next -%}
+            <a
+              href="{{ paginate.next.url }}"
+              class="collection__pagination-arrow collection__pagination-next"
+              aria-label="Next page"
+            >
+              {% render 'icon', icon: 'arrow-right', width: 18, height: 18 %}
+            </a>
+          {%- endif -%}
+        </nav>
+      {%- endif -%}
+    {%- else -%}
+      <div class="collection__empty">
+        <h2 class="collection__empty-title">No products found</h2>
+        <p class="collection__empty-text">There are currently no products in this collection.</p>
+        <a href="{{ routes.all_products_collection_url }}" class="collection__empty-btn"> Explore all products </a>
+      </div>
+    {%- endif -%}
+  {%- endpaginate -%}
+</section>
+
+{% schema %}
+{
+  "name": "Main collection products",
+  "tag": "section",
+  "class": "main-collection-products",
+  "settings": [
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "Color scheme",
+      "default": "scheme-1"
+    },
+    {
+      "type": "header",
+      "content": "Collection header"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_product_count",
+      "label": "Show product count badge",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_collection_description",
+      "label": "Show collection description",
+      "default": true
+    },
+    {
+      "type": "select",
+      "id": "header_alignment",
+      "label": "Header alignment",
+      "options": [
+        { "value": "left", "label": "Left" },
+        { "value": "center", "label": "Center" },
+        { "value": "right", "label": "Right" }
+      ],
+      "default": "center"
+    },
+    {
+      "type": "header",
+      "content": "Grid & Layout"
+    },
+    {
+      "type": "range",
+      "id": "products_per_page",
+      "label": "Products per page",
+      "min": 8,
+      "max": 36,
+      "step": 4,
+      "default": 16
+    },
+    {
+      "type": "range",
+      "id": "columns_desktop",
+      "label": "Columns on desktop",
+      "min": 2,
+      "max": 5,
+      "step": 1,
+      "default": 4
+    },
+    {
+      "type": "select",
+      "id": "columns_mobile",
+      "label": "Columns on mobile",
+      "options": [
+        { "value": "1", "label": "1" },
+        { "value": "2", "label": "2" }
+      ],
+      "default": "2"
+    },
+    {
+      "type": "header",
+      "content": "Product card settings"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_glass_cards",
+      "label": "Enable glassmorphism card style",
+      "default": true
+    },
+    {
+      "type": "select",
+      "id": "card_image_ratio",
+      "label": "Image ratio",
+      "options": [
+        { "value": "portrait", "label": "Portrait (3:4)" },
+        { "value": "square", "label": "Square (1:1)" },
+        { "value": "adapt", "label": "Adapt to image" }
+      ],
+      "default": "portrait"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_vendor",
+      "label": "Show vendor / brand",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_rating",
+      "label": "Show reviews / rating",
+      "default": true
+    },
+    {
+      "type": "select",
+      "id": "quick_view_mode",
+      "label": "Quick view",
+      "options": [
+        {
+          "value": "none",
+          "label": "None"
+        },
+        {
+          "value": "standard",
+          "label": "Standard (Add to cart & quick view for variants)"
+        },
+        {
+          "value": "all",
+          "label": "Quick view modal for all"
+        }
+      ],
+      "default": "standard",
+      "info": "Choose how quick action behaves: None (disabled), Standard (direct Add to cart for single-variant products, Quick view for multi-variant products), or Quick view modal for all."
+    },
+    {
+      "type": "select",
+      "id": "quick_view_position",
+      "label": "Quick view style / position",
+      "options": [
+        {
+          "value": "center",
+          "label": "Center popup modal"
+        },
+        {
+          "value": "left",
+          "label": "Left slide-out drawer"
+        },
+        {
+          "value": "right",
+          "label": "Right slide-out drawer"
+        }
+      ],
+      "default": "center"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_secondary_image",
+      "label": "Show secondary image on hover",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_sale_badge",
+      "label": "Show sale badge",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_stock_badge",
+      "label": "Show sold-out badge",
+      "default": true
+    },
+    {
+      "type": "header",
+      "content": "Section layout & spacing"
+    },
+    {
+      "type": "checkbox",
+      "id": "full_width",
+      "label": "Full width layout",
+      "default": false
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_rounded_corners",
+      "label": "Enable rounded card corners",
+      "default": true
+    },
+    {
+      "type": "range",
+      "id": "corner_radius",
+      "label": "Card corner radius",
+      "min": 0,
+      "max": 32,
+      "step": 2,
+      "unit": "px",
+      "default": 16
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "Top padding",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "default": 48
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "Bottom padding",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "default": 48
+    }
+  ]
+}
+{% endschema %}

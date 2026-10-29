@@ -1,0 +1,317 @@
+{% doc %}
+  Centralized SVG Icon Library snippet.
+  Renders SVG icons throughout the theme.
+
+  @param {string} icon - The icon name to render: 'tag', 'edit', 'chevron', 'trash', 'close', 'lock', 'bag', 'cart', 'account', 'arrow-left', 'arrow-right', 'package', 'return', 'check', 'warning', 'search'
+  @param {string} [class] - Optional CSS class for the SVG element
+  @param {number} [width] - SVG width in pixels
+  @param {number} [height] - SVG height in pixels
+
+  @example
+  {% render 'icon', icon: 'tag' %}
+  {% render 'icon', icon: 'cart', width: 20, height: 20 %}
+  {% render 'icon', icon: 'edit', class: 'custom-edit-icon', width: 16, height: 16 %}
+{% enddoc %}
+
+{%- case icon -%}
+  {%- when 'tag', 'discount' -%}
+    <svg
+      class="{{ class | default: 'icon-tag' }}"
+      viewBox="0 0 24 24"
+      width="{{ width | default: 14 }}"
+      height="{{ height | default: 14 }}"
+      stroke="currentColor"
+      stroke-width="2"
+      fill="none"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path>
+      <line x1="7" y1="7" x2="7.01" y2="7"></line>
+    </svg>
+
+  {%- when 'edit', 'pencil', 'note' -%}
+    <svg
+      class="{{ class | default: 'icon-edit' }}"
+      viewBox="0 0 24 24"
+      width="{{ width | default: 16 }}"
+      height="{{ height | default: 16 }}"
+      stroke="currentColor"
+      stroke-width="2"
+      fill="none"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+    </svg>
+
+  {%- when 'chevron', 'chevron-down', 'dropdown' -%}
+    <svg
+      class="{{ class | default: 'icon-chevron' }}"
+      viewBox="0 0 24 24"
+      width="{{ width | default: 16 }}"
+      height="{{ height | default: 16 }}"
+      stroke="currentColor"
+      stroke-width="2"
+      fill="none"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      aria-hidden="true"
+    >
+      <polyline points="6 9 12 15 18 9"></polyline>
+    </svg>
+
+  {%- when 'trash', 'remove' -%}
+    <svg
+      class="{{ class | default: 'icon-trash' }}"
+      viewBox="0 0 24 24"
+      width="{{ width | default: 14 }}"
+      height="{{ height | default: 14 }}"
+      stroke="currentColor"
+      stroke-width="2"
+      fill="none"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      aria-hidden="true"
+    >
+      <polyline points="3 6 5 6 21 6"></polyline>
+      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+    </svg>
+
+  {%- when 'close', 'x' -%}
+    <svg
+      class="{{ class | default: 'icon-close' }}"
+      viewBox="0 0 24 24"
+      width="{{ width | default: 16 }}"
+      height="{{ height | default: 16 }}"
+      stroke="currentColor"
+      stroke-width="2"
+      fill="none"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      aria-hidden="true"
+    >
+      <line x1="18" y1="6" x2="6" y2="18"></line>
+      <line x1="6" y1="6" x2="18" y2="18"></line>
+    </svg>
+
+  {%- when 'lock', 'secure' -%}
+    <svg
+      class="{{ class | default: 'icon-lock' }}"
+      viewBox="0 0 24 24"
+      width="{{ width | default: 16 }}"
+      height="{{ height | default: 16 }}"
+      stroke="currentColor"
+      stroke-width="2"
+      fill="none"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      aria-hidden="true"
+    >
+      <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+      <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+    </svg>
+
+  {%- when 'bag', 'cart-empty' -%}
+    <svg
+      class="{{ class | default: 'icon-bag' }}"
+      viewBox="0 0 24 24"
+      width="{{ width | default: 48 }}"
+      height="{{ height | default: 48 }}"
+      stroke="currentColor"
+      stroke-width="1.5"
+      fill="none"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <path d="M16 10a4 4 0 0 1-8 0"></path>
+    </svg>
+
+  {%- when 'cart' -%}
+    <svg
+      class="{{ class | default: 'icon-cart' }}"
+      viewBox="0 0 20 20"
+      width="{{ width | default: 20 }}"
+      height="{{ height | default: 20 }}"
+      fill="none"
+      stroke="currentColor"
+      aria-hidden="true"
+    >
+      <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
+        stroke-width="var(--icon-stroke-width, 1.5)"
+        d="M3.392 6.875h13.216v8.016c0 .567-.224 1.112-.624 1.513-.4.402-.941.627-1.506.627H5.522a2.13 2.13 0 0 1-1.506-.627 2.15 2.15 0 0 1-.624-1.513zM8.818 2.969h2.333c.618 0 1.211.247 1.649.686a2.35 2.35 0 0 1 .683 1.658v1.562H6.486V5.313c0-.622.246-1.218.683-1.658a2.33 2.33 0 0 1 1.65-.686" />
+    </svg>
+
+  {%- when 'account', 'user' -%}
+    <svg
+      class="{{ class | default: 'icon-account' }}"
+      viewBox="0 0 20 20"
+      width="{{ width | default: 20 }}"
+      height="{{ height | default: 20 }}"
+      fill="none"
+      stroke="currentColor"
+      aria-hidden="true"
+    >
+      <circle cx="10" cy="6.5" r="2.75" stroke="currentColor" stroke-width="var(--icon-stroke-width, 1.5)" />
+      <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
+        stroke-width="var(--icon-stroke-width, 1.5)"
+        d="m5.172 14.591-.437.786a.588.588 0 0 0 .514.873h9.502a.588.588 0 0 0 .514-.873l-.437-.786a5.523 5.523 0 0 0-9.656 0" />
+    </svg>
+
+  {%- when 'chevron-left', 'prev', 'slider-prev' -%}
+    <svg
+      class="{{ class | default: 'icon-chevron-left' }}"
+      viewBox="0 0 24 24"
+      width="{{ width | default: 18 }}"
+      height="{{ height | default: 18 }}"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="2.2"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      aria-hidden="true"
+    >
+      <polyline points="15 18 9 12 15 6"></polyline>
+    </svg>
+
+  {%- when 'chevron-right', 'next', 'slider-next' -%}
+    <svg
+      class="{{ class | default: 'icon-chevron-right' }}"
+      viewBox="0 0 24 24"
+      width="{{ width | default: 18 }}"
+      height="{{ height | default: 18 }}"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="2.2"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      aria-hidden="true"
+    >
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+
+  {%- when 'arrow-left' -%}
+    <svg
+      class="{{ class | default: 'icon-arrow-left' }}"
+      viewBox="0 0 24 24"
+      width="{{ width | default: 18 }}"
+      height="{{ height | default: 18 }}"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="2"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M20 12H4M4 12L8 8M4 12L8 16"></path>
+    </svg>
+
+  {%- when 'arrow-right', 'arrow', 'arrow-right-long' -%}
+    <svg
+      class="{{ class | default: 'icon-arrow-right' }}"
+      viewBox="0 0 24 24"
+      width="{{ width | default: 18 }}"
+      height="{{ height | default: 18 }}"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="2"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M4 12H20M20 12L16 8M20 12L16 16"></path>
+    </svg>
+
+  {%- when 'package', 'shipping' -%}
+    <svg
+      class="{{ class | default: 'icon-package' }}"
+      viewBox="0 0 24 24"
+      width="{{ width | default: 16 }}"
+      height="{{ height | default: 16 }}"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="2"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      aria-hidden="true"
+    >
+      <line x1="16.5" y1="9.4" x2="7.5" y2="4.21"></line>
+      <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+      <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+      <line x1="12" y1="22.08" x2="12" y2="12"></line>
+    </svg>
+
+  {%- when 'return', 'refresh' -%}
+    <svg
+      class="{{ class | default: 'icon-return' }}"
+      viewBox="0 0 24 24"
+      width="{{ width | default: 16 }}"
+      height="{{ height | default: 16 }}"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="2"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      aria-hidden="true"
+    >
+      <polyline points="1 4 1 10 7 10"></polyline>
+      <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path>
+    </svg>
+
+  {%- when 'check', 'checkmark' -%}
+    <svg
+      class="{{ class | default: 'icon-check' }}"
+      viewBox="0 0 24 24"
+      width="{{ width | default: 16 }}"
+      height="{{ height | default: 16 }}"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="2.5"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      aria-hidden="true"
+    >
+      <polyline points="20 6 9 17 4 12"></polyline>
+    </svg>
+
+  {%- when 'warning', 'alert', 'error' -%}
+    <svg
+      class="{{ class | default: 'icon-warning' }}"
+      viewBox="0 0 24 24"
+      width="{{ width | default: 16 }}"
+      height="{{ height | default: 16 }}"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="2"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      aria-hidden="true"
+    >
+      <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path>
+      <line x1="12" y1="9" x2="12" y2="13"></line>
+      <line x1="12" y1="17" x2="12.01" y2="17"></line>
+    </svg>
+
+  {%- when 'search' -%}
+    <svg
+      class="{{ class | default: 'icon-search' }}"
+      viewBox="0 0 24 24"
+      width="{{ width | default: 20 }}"
+      height="{{ height | default: 20 }}"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="2"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      aria-hidden="true"
+    >
+      <circle cx="11" cy="11" r="8"></circle>
+      <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+    </svg>
+{%- endcase -%}

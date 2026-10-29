@@ -1,0 +1,400 @@
+[
+  {
+    "name": "theme_info",
+    "theme_name": "CartPerksFlow",
+    "theme_version": "1.0.0",
+    "theme_author": "CartPerksFlow",
+    "theme_documentation_url": "https://help.shopify.com/manual/online-store/themes",
+    "theme_support_url": "https://support.shopify.com/"
+  },
+  {
+    "name": "t:general.typography",
+    "settings": [
+      {
+        "type": "header",
+        "content": "t:general.fonts"
+      },
+      {
+        "type": "font_picker",
+        "id": "type_primary_font",
+        "default": "work_sans_n4",
+        "label": "t:general.primary"
+      }
+    ]
+  },
+  {
+    "name": "t:general.layout",
+    "settings": [
+      {
+        "type": "select",
+        "id": "max_page_width",
+        "label": "t:labels.page_width",
+        "options": [
+          {
+            "value": "90rem",
+            "label": "t:options.page_width.narrow"
+          },
+          {
+            "value": "110rem",
+            "label": "t:options.page_width.wide"
+          }
+        ],
+        "default": "90rem"
+      },
+      {
+        "type": "range",
+        "id": "min_page_margin",
+        "min": 10,
+        "max": 100,
+        "step": 1,
+        "unit": "px",
+        "label": "t:labels.page_margin",
+        "default": 20
+      }
+    ]
+  },
+  {
+    "name": "t:general.colors",
+    "settings": [
+      {
+        "type": "color_scheme_group",
+        "id": "color_schemes",
+        "definition": [
+          {
+            "type": "color",
+            "id": "background",
+            "label": "t:labels.background",
+            "default": "#FFFFFF"
+          },
+          {
+            "type": "color_background",
+            "id": "background_gradient",
+            "label": "Background gradient"
+          },
+          {
+            "type": "color",
+            "id": "text",
+            "label": "t:labels.foreground",
+            "default": "#111827"
+          },
+          {
+            "type": "color",
+            "id": "button",
+            "label": "Primary button",
+            "default": "#111827"
+          },
+          {
+            "type": "color",
+            "id": "button_label",
+            "label": "Primary button label",
+            "default": "#FFFFFF"
+          },
+          {
+            "type": "color",
+            "id": "secondary_button_label",
+            "label": "Secondary button label",
+            "default": "#111827"
+          },
+          {
+            "type": "color",
+            "id": "shadow",
+            "label": "Shadow",
+            "default": "#000000"
+          }
+        ],
+        "role": {
+          "text": "text",
+          "background": {
+            "solid": "background",
+            "gradient": "background_gradient"
+          },
+          "links": "secondary_button_label",
+          "icons": "text",
+          "primary_button": "button",
+          "on_primary_button": "button_label",
+          "primary_button_border": "button",
+          "secondary_button": "background",
+          "on_secondary_button": "secondary_button_label",
+          "secondary_button_border": "secondary_button_label"
+        }
+      },
+      {
+        "type": "color",
+        "id": "background_color",
+        "default": "#FFFFFF",
+        "label": "t:labels.background"
+      },
+      {
+        "type": "color",
+        "id": "foreground_color",
+        "default": "#333333",
+        "label": "t:labels.foreground"
+      },
+      {
+        "type": "range",
+        "id": "input_corner_radius",
+        "min": 0,
+        "max": 10,
+        "step": 1,
+        "unit": "px",
+        "label": "t:labels.input_corner_radius",
+        "default": 4
+      }
+    ]
+  },
+  {
+    "name": "Product cards",
+    "settings": [
+      {
+        "type": "header",
+        "content": "Style & Appearance"
+      },
+      {
+        "type": "select",
+        "id": "card_style",
+        "label": "Card style",
+        "options": [
+          { "value": "glass", "label": "Glassmorphism" },
+          { "value": "standard", "label": "Standard" },
+          { "value": "card", "label": "Contained card" }
+        ],
+        "default": "glass"
+      },
+      {
+        "type": "select",
+        "id": "card_image_ratio",
+        "label": "Image ratio",
+        "options": [
+          { "value": "portrait", "label": "Portrait (3:4)" },
+          { "value": "square", "label": "Square (1:1)" },
+          { "value": "adapt", "label": "Adapt to image" }
+        ],
+        "default": "portrait"
+      },
+      {
+        "type": "select",
+        "id": "card_text_alignment",
+        "label": "Text alignment",
+        "options": [
+          { "value": "left", "label": "Left" },
+          { "value": "center", "label": "Center" },
+          { "value": "right", "label": "Right" }
+        ],
+        "default": "left"
+      },
+      {
+        "type": "header",
+        "content": "Card elements"
+      },
+      {
+        "type": "checkbox",
+        "id": "card_show_vendor",
+        "label": "Show vendor / brand",
+        "default": true
+      },
+      {
+        "type": "checkbox",
+        "id": "card_show_rating",
+        "label": "Show reviews / rating",
+        "default": true
+      },
+      {
+        "type": "select",
+        "id": "card_quick_view_mode",
+        "label": "Quick view",
+        "options": [
+          {
+            "value": "none",
+            "label": "None"
+          },
+          {
+            "value": "standard",
+            "label": "Standard (Add to cart & quick view for variants)"
+          },
+          {
+            "value": "all",
+            "label": "Quick view modal for all"
+          }
+        ],
+        "default": "standard",
+        "info": "Choose how quick action behaves: None (disabled), Standard (direct Add to cart for single-variant products, Quick view for multi-variant products), or Quick view modal for all."
+      },
+      {
+        "type": "checkbox",
+        "id": "card_show_secondary_image",
+        "label": "Show secondary image on hover",
+        "default": true
+      },
+      {
+        "type": "checkbox",
+        "id": "card_show_sale_badge",
+        "label": "Show sale badge",
+        "default": true
+      },
+      {
+        "type": "checkbox",
+        "id": "card_show_stock_badge",
+        "label": "Show sold-out badge",
+        "default": true
+      },
+      {
+        "type": "header",
+        "content": "Border & Corners"
+      },
+      {
+        "type": "checkbox",
+        "id": "card_enable_rounded_corners",
+        "label": "Enable rounded card corners",
+        "default": true
+      },
+      {
+        "type": "range",
+        "id": "card_corner_radius",
+        "label": "Corner radius",
+        "min": 0,
+        "max": 32,
+        "step": 2,
+        "unit": "px",
+        "default": 16
+      },
+      {
+        "type": "range",
+        "id": "card_border_opacity",
+        "label": "Border opacity",
+        "min": 0,
+        "max": 100,
+        "step": 5,
+        "unit": "%",
+        "default": 15
+      },
+      {
+        "type": "range",
+        "id": "card_shadow_opacity",
+        "label": "Shadow opacity",
+        "min": 0,
+        "max": 100,
+        "step": 5,
+        "unit": "%",
+        "default": 10
+      }
+    ]
+  },
+  {
+    "name": "Cart",
+    "settings": [
+      {
+        "type": "header",
+        "content": "Cart Experience"
+      },
+      {
+        "type": "select",
+        "id": "cart_type",
+        "label": "Cart type",
+        "options": [
+          {
+            "value": "drawer",
+            "label": "Drawer (slide-out cart)"
+          },
+          {
+            "value": "page",
+            "label": "Page (redirect to /cart)"
+          }
+        ],
+        "default": "drawer",
+        "info": "Choose whether clicking cart or adding an item opens a slide-out drawer or navigates to the cart page."
+      },
+      {
+        "type": "checkbox",
+        "id": "cart_show_note",
+        "label": "Enable cart note",
+        "default": true
+      },
+      {
+        "type": "checkbox",
+        "id": "cart_show_discount_field",
+        "label": "Enable discount code input",
+        "default": true,
+        "info": "Allows customers to enter and apply discount codes in the cart drawer and cart page."
+      },
+      {
+        "type": "header",
+        "content": "Free Shipping Bar"
+      },
+      {
+        "type": "checkbox",
+        "id": "cart_show_free_shipping",
+        "label": "Show free shipping progress bar",
+        "default": true
+      },
+      {
+        "type": "number",
+        "id": "cart_free_shipping_threshold",
+        "label": "Free shipping goal amount (e.g. 50)",
+        "default": 50
+      }
+    ]
+  },
+  {
+    "name": "Quick view modal",
+    "settings": [
+      {
+        "type": "header",
+        "content": "Quick View Experience"
+      },
+      {
+        "type": "select",
+        "id": "quick_view_position",
+        "label": "Quick view style / position",
+        "options": [
+          {
+            "value": "center",
+            "label": "Center popup modal"
+          },
+          {
+            "value": "left",
+            "label": "Left slide-out drawer"
+          },
+          {
+            "value": "right",
+            "label": "Right slide-out drawer"
+          }
+        ],
+        "default": "center",
+        "info": "Choose whether the quick view modal opens centered in the viewport or slides in as a left or right drawer."
+      },
+      {
+        "type": "select",
+        "id": "variant_style",
+        "label": "Variant option style",
+        "options": [
+          {
+            "value": "swatches",
+            "label": "Swatches and pills"
+          },
+          {
+            "value": "dropdown",
+            "label": "Dropdown select menus"
+          }
+        ],
+        "default": "swatches",
+        "info": "Display variant options as visual swatches/pills or dropdown select menus across quick view and product pages."
+      }
+    ]
+  },
+  {
+    "name": "Variant swatches",
+    "settings": [
+      {
+        "type": "header",
+        "content": "Variant Swatches & Color Codes"
+      },
+      {
+        "type": "textarea",
+        "id": "custom_color_swatches",
+        "label": "Custom color swatch codes",
+        "info": "Enter one color code per line in the format: Color Name: #hex_code (e.g. Navy: #1e3a8a). These colors will be used for variant color swatches across the store and in the quick view modal.",
+        "default": "white: #ffffff\nblack: #000000\nred: #ef4444\ngreen: #22c55e\nblue: #3b82f6\nyellow: #eab308\norange: #f97316\npurple: #a855f7\npink: #ec4899\ngray: #6b7280\ngrey: #6b7280\nnavy: #1e3a8a\nbrown: #78350f\nbeige: #f5f5dc\ngold: #d97706\nsilver: #cbd5e1\ncharcoal: #334155\nteal: #0d9488\nolive: #65a30d\nmaroon: #881337\ncream: #fef3c7\ncoral: #f43f5e\nlavender: #e9d5ff\namber: #d97706\nslate: #64748b\nkhaki: #c3b091\nsand: #e2d4b7"
+      }
+    ]
+  }
+]

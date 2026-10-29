@@ -1,0 +1,325 @@
+{% doc %}
+  Header search modal/drawer and predictive search interface.
+  Supports both standard normal search and instant live predictive search.
+
+  @param {string} [search_type] - 'normal' or 'predictive'
+  @param {string} [search_layout] - 'current' or 'drawer'
+  @param {string} [products_layout] - 'grid' or 'slider'
+  @param {boolean} [show_image] - Whether to show product image
+  @param {boolean} [show_vendor] - Whether to show product vendor
+  @param {collection} [recommended_collection] - Collection for recommended products
+  @param {boolean} [enable_add_to_cart] - Whether to enable quick add to cart on hover
+
+  @example
+  {% render 'header-search',
+    search_type: section.settings.search_type,
+    search_layout: section.settings.search_layout,
+    products_layout: section.settings.search_products_layout,
+    show_image: section.settings.search_show_image,
+    show_vendor: section.settings.search_show_vendor,
+    recommended_collection: section.settings.search_recommended_collection,
+    enable_add_to_cart: section.settings.search_enable_add_to_cart
+  %}
+{% enddoc %}
+
+<header-search
+  id="HeaderSearch"
+  class="header-search header-search--{{ search_layout | default: 'current' }}"
+  data-search-type="{{ search_type | default: 'predictive' }}"
+  data-search-layout="{{ search_layout | default: 'current' }}"
+  data-products-layout="{{ products_layout | default: 'grid' }}"
+  data-show-image="{% if show_image != false %}true{% else %}false{% endif %}"
+  data-show-vendor="{% if show_vendor %}true{% else %}false{% endif %}"
+  data-enable-add-to-cart="{% if enable_add_to_cart != false %}true{% else %}false{% endif %}"
+  role="dialog"
+  aria-modal="true"
+  aria-label="{{ 'search.title' | t }}"
+  hidden
+>
+  <div class="header-search__backdrop" data-search-close aria-hidden="true"></div>
+
+  <div class="header-search__dialog">
+    <div class="header-search__header">
+      <form
+        action="{{ routes.search_url }}"
+        method="get"
+        role="search"
+        class="header-search__form"
+        data-search-form
+      >
+        <span class="header-search__input-icon" aria-hidden="true">
+          {% render 'icon', icon: 'search', width: 20, height: 20 %}
+        </span>
+
+        <input
+          type="search"
+          name="q"
+          class="header-search__input"
+          placeholder="{{ 'search.placeholder' | t }}"
+          autocomplete="off"
+          autocorrect="off"
+          autocapitalize="off"
+          spellcheck="false"
+          data-search-input
+          aria-autocomplete="list"
+          aria-expanded="false"
+          aria-controls="HeaderSearchResults"
+          aria-label="{{ 'search.title' | t }}"
+        >
+
+        <input type="hidden" name="options[prefix]" value="last">
+
+        <button
+          type="button"
+          class="header-search__clear-btn hidden"
+          aria-label="{{ 'search.clear' | t }}"
+          data-search-clear
+        >
+          {% render 'icon', icon: 'close', width: 14, height: 14 %}
+        </button>
+
+        <button
+          type="submit"
+          class="header-search__submit-btn"
+          aria-label="{{ 'search.submit' | t }}"
+        >
+          <span>{{ 'search.submit' | t }}</span>
+        </button>
+      </form>
+
+      <button
+        type="button"
+        class="header-search__close-btn"
+        aria-label="{{ 'search.close' | t }}"
+        data-search-close
+      >
+        {% render 'icon', icon: 'close', width: 22, height: 22 %}
+      </button>
+    </div>
+
+    <div class="header-search__body">
+      {%- # Recommended Products Collection -%}
+      {%- assign layout_mode = products_layout | default: 'grid' -%}
+      {%- assign rec_collection = recommended_collection -%}
+      {%- if rec_collection == blank -%}
+        {%- assign rec_collection = collections['new-arrivals'] | default: collections.all -%}
+      {%- endif -%}
+
+      {%- if rec_collection != blank and rec_collection.products.size > 0 -%}
+        <div class="header-search__recommended" data-search-recommended>
+          <div class="header-search__section-header">
+            <div class="header-search__section-title-wrap">
+              <h4 class="header-search__section-title">
+                {{ 'search.recommended_title' | t }}
+              </h4>
+              <a
+                href="{{ rec_collection.url | default: routes.all_products_collection_url }}"
+                class="header-search__collection-badge"
+              >
+                <span>{{ 'search.view_all' | t | default: 'View all' }}</span>
+                {% render 'icon', icon: 'arrow-right', width: 12, height: 12 %}
+              </a>
+            </div>
+
+            {%- if layout_mode == 'slider' -%}
+              <div class="header-search__slider-nav" aria-label="Slider navigation">
+                <button
+                  type="button"
+                  class="header-search__slider-arrow header-search__slider-arrow--prev"
+                  data-slider-prev
+                  aria-label="Previous products"
+                >
+                  {% render 'icon', icon: 'chevron-left', width: 14, height: 14 %}
+                </button>
+                <button
+                  type="button"
+                  class="header-search__slider-arrow header-search__slider-arrow--next"
+                  data-slider-next
+                  aria-label="Next products"
+                >
+                  {% render 'icon', icon: 'chevron-right', width: 14, height: 14 %}
+                </button>
+              </div>
+            {%- endif -%}
+          </div>
+
+          {%- if layout_mode == 'slider' -%}
+            <div class="header-search__slider-wrapper">
+              <ul class="header-search__products-slider" data-slider-track>
+                {%- for product in rec_collection.products limit: 8 -%}
+                  {%- assign first_variant = product.selected_or_first_available_variant | default: product.variants.first -%}
+                  <li class="header-search__slider-item">
+                    <div
+                      class="header-search__product-card header-search__product-card--slider"
+                      data-product-handle="{{ product.handle }}"
+                      data-variant-id="{{ first_variant.id }}"
+                    >
+                      {%- if show_image != false and product.featured_image != blank -%}
+                        <a href="{{ product.url }}" class="header-search__slider-thumb-wrap">
+                          <img
+                            src="{{ product.featured_image | image_url: width: 320 }}"
+                            alt="{{ product.title | escape }}"
+                            class="header-search__slider-thumb"
+                            width="160"
+                            height="160"
+                            loading="lazy"
+                          >
+                        </a>
+                      {%- endif -%}
+
+                      {%- if enable_add_to_cart != false and product.available -%}
+                        <button
+                          type="button"
+                          class="header-search__cart-btn"
+                          data-quick-add-btn
+                          data-variant-id="{{ first_variant.id }}"
+                          aria-label="Add {{ product.title | escape }} to cart"
+                          title="Add to cart"
+                        >
+                          <span class="header-search__cart-btn-icon">
+                            {% render 'icon', icon: 'cart', width: 16, height: 16 %}
+                          </span>
+                          <span class="header-search__cart-btn-spinner" aria-hidden="true"></span>
+                        </button>
+                      {%- endif -%}
+
+                      <div class="header-search__product-info">
+                        {%- if show_vendor and product.vendor != blank -%}
+                          <span class="header-search__product-vendor">{{ product.vendor }}</span>
+                        {%- endif -%}
+                        <h5 class="header-search__product-title">
+                          <a href="{{ product.url }}">{{ product.title }}</a>
+                        </h5>
+                        <div class="header-search__product-price" data-card-price>
+                          <span data-price-regular>{{ first_variant.price | money }}</span>
+                          {%- if first_variant.compare_at_price > first_variant.price -%}
+                            <span class="header-search__product-price-compare" data-price-compare>{{ first_variant.compare_at_price | money }}</span>
+                          {%- endif -%}
+                        </div>
+
+                        {%- if enable_add_to_cart != false and product.variants.size > 1 -%}
+                          <div class="header-search__variants" data-search-variants>
+                            {%- for variant in product.variants limit: 5 -%}
+                              <button
+                                type="button"
+                                class="header-search__variant-pill{% if variant.id == first_variant.id %} is-active{% endif %}{% unless variant.available %} is-sold-out{% endunless %}"
+                                data-variant-id="{{ variant.id }}"
+                                data-variant-price="{{ variant.price | money }}"
+                                {% if variant.compare_at_price > variant.price %}
+                                  data-variant-compare="{{ variant.compare_at_price | money }}"
+                                {% endif %}
+                                data-available="{{ variant.available }}"
+                                aria-label="{{ variant.title }}"
+                                {% unless variant.available %}disabled{% endunless %}
+                              >
+                                {{ variant.title }}
+                              </button>
+                            {%- endfor -%}
+                          </div>
+                        {%- endif -%}
+                      </div>
+                    </div>
+                  </li>
+                {%- endfor -%}
+              </ul>
+            </div>
+          {%- else -%}
+            <ul class="header-search__products-grid">
+              {%- for product in rec_collection.products limit: 6 -%}
+                {%- assign first_variant = product.selected_or_first_available_variant | default: product.variants.first -%}
+                <li>
+                  <div
+                    class="header-search__product-card"
+                    data-product-handle="{{ product.handle }}"
+                    data-variant-id="{{ first_variant.id }}"
+                  >
+                    {%- if show_image != false and product.featured_image != blank -%}
+                      <a href="{{ product.url }}" class="header-search__thumb-link">
+                        <img
+                          src="{{ product.featured_image | image_url: width: 140 }}"
+                          alt="{{ product.title | escape }}"
+                          class="header-search__product-thumb"
+                          width="62"
+                          height="62"
+                          loading="lazy"
+                        >
+                      </a>
+                    {%- endif -%}
+
+                    <div class="header-search__product-info">
+                      {%- if show_vendor and product.vendor != blank -%}
+                        <span class="header-search__product-vendor">{{ product.vendor }}</span>
+                      {%- endif -%}
+                      <h5 class="header-search__product-title">
+                        <a href="{{ product.url }}">{{ product.title }}</a>
+                      </h5>
+                      <div class="header-search__product-price" data-card-price>
+                        <span data-price-regular>{{ first_variant.price | money }}</span>
+                        {%- if first_variant.compare_at_price > first_variant.price -%}
+                          <span class="header-search__product-price-compare" data-price-compare>{{ first_variant.compare_at_price | money }}</span>
+                        {%- endif -%}
+                      </div>
+
+                      {%- if enable_add_to_cart != false and product.variants.size > 1 -%}
+                        <div class="header-search__variants" data-search-variants>
+                          {%- for variant in product.variants limit: 5 -%}
+                            <button
+                              type="button"
+                              class="header-search__variant-pill{% if variant.id == first_variant.id %} is-active{% endif %}{% unless variant.available %} is-sold-out{% endunless %}"
+                              data-variant-id="{{ variant.id }}"
+                              data-variant-price="{{ variant.price | money }}"
+                              {% if variant.compare_at_price > variant.price %}
+                                data-variant-compare="{{ variant.compare_at_price | money }}"
+                              {% endif %}
+                              data-available="{{ variant.available }}"
+                              aria-label="{{ variant.title }}"
+                              {% unless variant.available %}disabled{% endunless %}
+                            >
+                              {{ variant.title }}
+                            </button>
+                          {%- endfor -%}
+                        </div>
+                      {%- endif -%}
+                    </div>
+
+                    {%- if enable_add_to_cart != false and product.available -%}
+                      <button
+                        type="button"
+                        class="header-search__cart-btn"
+                        data-quick-add-btn
+                        data-variant-id="{{ first_variant.id }}"
+                        aria-label="Add {{ product.title | escape }} to cart"
+                        title="Add to cart"
+                      >
+                        <span class="header-search__cart-btn-icon">
+                          {% render 'icon', icon: 'cart', width: 16, height: 16 %}
+                        </span>
+                        <span class="header-search__cart-btn-spinner" aria-hidden="true"></span>
+                      </button>
+                    {%- endif -%}
+                  </div>
+                </li>
+              {%- endfor -%}
+            </ul>
+          {%- endif -%}
+        </div>
+      {%- endif -%}
+
+      {%- if search_type == 'predictive' -%}
+        <div
+          id="HeaderSearchResults"
+          class="header-search__results hidden"
+          data-search-results
+          role="region"
+          aria-live="polite"
+        >
+          <div class="header-search__loading hidden" data-search-loading>
+            <div class="header-search__spinner" aria-hidden="true"></div>
+            <span>Loading results...</span>
+          </div>
+          <div class="header-search__results-content" data-search-content></div>
+        </div>
+      {%- endif -%}
+    </div>
+  </div>
+</header-search>

@@ -1,0 +1,266 @@
+{% doc %}
+  Renders a customizable, responsive product card with glassmorphism styling, badges, ratings, and quick add.
+
+  @param {product} [product] - The product object to render
+  @param {string} [media_aspect_ratio] - Aspect ratio: 'square', 'portrait', or 'adapt'
+  @param {boolean} [show_secondary_image] - Show second image on hover
+  @param {boolean} [show_vendor] - Show vendor/brand name
+  @param {boolean} [show_rating] - Show star review rating
+  @param {string} [quick_view_mode] - Quick view mode: 'none', 'standard', or 'all'
+  @param {boolean} [show_sale_badge] - Show discount/sale badge
+  @param {boolean} [show_stock_badge] - Show stock status badge
+  @param {boolean} [enable_glass] - Apply glassmorphism styling
+  @param {boolean} [lazy_load] - Enable lazy loading for images
+  @param {string} [section_id] - ID of the parent section for unique form IDs
+
+  @example
+  {% render 'product-card', product: product, media_aspect_ratio: 'portrait', quick_view_mode: 'standard' %}
+{% enddoc %}
+
+{%- liquid
+  assign card_aspect_ratio = media_aspect_ratio | default: settings.card_image_ratio | default: 'portrait'
+
+  assign show_vendor_val = settings.card_show_vendor
+  if show_vendor != null
+    assign show_vendor_val = show_vendor
+  endif
+
+  assign show_rating_val = settings.card_show_rating
+  if show_rating != null
+    assign show_rating_val = show_rating
+  endif
+
+  assign qv_mode = quick_view_mode
+  if qv_mode == null
+    assign qv_mode = settings.card_quick_view_mode | default: 'standard'
+  endif
+
+  assign show_secondary_image_val = settings.card_show_secondary_image
+  if show_secondary_image != null
+    assign show_secondary_image_val = show_secondary_image
+  endif
+
+  assign show_sale_badge_val = settings.card_show_sale_badge
+  if show_sale_badge != null
+    assign show_sale_badge_val = show_sale_badge
+  endif
+
+  assign show_stock_badge_val = settings.card_show_stock_badge
+  if show_stock_badge != null
+    assign show_stock_badge_val = show_stock_badge
+  endif
+
+  assign card_style_class = 'product-card--glass'
+  if enable_glass == false
+    assign card_style_class = 'product-card--card'
+  elsif enable_glass == null
+    if settings.card_style == 'standard'
+      assign card_style_class = 'product-card--standard'
+    elsif settings.card_style == 'card'
+      assign card_style_class = 'product-card--card'
+    else
+      assign card_style_class = 'product-card--glass'
+    endif
+  endif
+
+  assign current_variant = product.selected_or_first_available_variant
+  assign has_multiple_variants = false
+  if product.variants.size > 1
+    assign has_multiple_variants = true
+  endif
+
+  assign is_on_sale = false
+  if product.compare_at_price > product.price
+    assign is_on_sale = true
+  endif
+
+  assign is_sold_out = true
+  if product.available
+    assign is_sold_out = false
+  endif
+
+  assign loading_attr = 'lazy'
+  if lazy_load == false
+    assign loading_attr = 'eager'
+  endif
+-%}
+
+<div class="product-card {{ card_style_class }}">
+  <div class="product-card__inner">
+    {%- # Image Container -%}
+    <div class="product-card__media-wrapper product-card__media-wrapper--{{ card_aspect_ratio }}">
+      <a
+        href="{{ product.url | default: '#' }}"
+        class="product-card__media-link"
+        aria-label="{{ product.title | default: 'Product item' | escape }}"
+      >
+        {%- if product.featured_media != blank -%}
+          <div class="product-card__media">
+            {{
+              product.featured_media
+              | image_url: width: 800
+              | image_tag:
+                loading: loading_attr,
+                class: 'product-card__image product-card__image--primary',
+                widths: '360, 540, 720, 900',
+                sizes: '(min-width: 1200px) 25vw, (min-width: 750px) 33vw, 50vw',
+                alt: product.featured_media.alt
+              | default: product.title
+              | escape
+            }}
+
+            {%- if show_secondary_image_val and product.media[1] != blank -%}
+              {{
+                product.media[1]
+                | image_url: width: 800
+                | image_tag:
+                  loading: 'lazy',
+                  class: 'product-card__image product-card__image--secondary',
+                  widths: '360, 540, 720, 900',
+                  sizes: '(min-width: 1200px) 25vw, (min-width: 750px) 33vw, 50vw',
+                  alt: product.media[1].alt
+                | default: product.title
+                | escape
+              }}
+            {%- endif -%}
+          </div>
+        {%- else -%}
+          <div class="product-card__media product-card__media--placeholder">
+            {{ 'product-1' | placeholder_svg_tag: 'product-card__placeholder-svg' }}
+          </div>
+        {%- endif -%}
+      </a>
+
+      {%- # Badges Overlay -%}
+      <div class="product-card__badges">
+        {%- if show_sale_badge_val and is_on_sale -%}
+          <span class="product-card__badge product-card__badge--sale">
+            {%- assign discount = product.compare_at_price
+              | minus: product.price
+              | times: 100.0
+              | divided_by: product.compare_at_price
+              | round
+            -%}
+            -{{ discount }}%
+          </span>
+        {%- endif -%}
+
+        {%- if show_stock_badge_val and is_sold_out -%}
+          <span class="product-card__badge product-card__badge--soldout"> Sold out </span>
+        {%- endif -%}
+      </div>
+
+      {%- # Quick Add / Quick View Action -%}
+      {%- if qv_mode != 'none' and product != blank -%}
+        <div class="product-card__quick-add">
+          {%- if is_sold_out -%}
+            <button type="button" class="product-card__btn product-card__btn--disabled" disabled>Sold out</button>
+          {%- elsif qv_mode == 'all' -%}
+            {%- # Quick view modal for all products -%}
+            <button
+              type="button"
+              class="product-card__btn product-card__btn--options"
+              data-quick-view-trigger
+              data-product-handle="{{ product.handle }}"
+              aria-haspopup="dialog"
+              aria-label="Quick view {{ product.title | escape }}"
+            >
+              <span class="product-card__btn-text">Quick view</span>
+              <span class="product-card__btn-icon" aria-hidden="true">+</span>
+            </button>
+          {%- elsif has_multiple_variants -%}
+            {%- # Standard mode: Has variants -> Choose options opens Quick View -%}
+            <button
+              type="button"
+              class="product-card__btn product-card__btn--options"
+              data-quick-view-trigger
+              data-product-handle="{{ product.handle }}"
+              aria-haspopup="dialog"
+              aria-label="Choose options for {{ product.title | escape }}"
+            >
+              <span class="product-card__btn-text">Choose options</span>
+              <span class="product-card__btn-icon" aria-hidden="true">+</span>
+            </button>
+          {%- else -%}
+            {%- # Standard mode: Single variant -> Direct Add to Cart -%}
+            <product-form class="product-card__product-form">
+              <form
+                action="{{ routes.cart_add_url }}"
+                method="post"
+                enctype="multipart/form-data"
+                id="QuickAddForm-{{ section_id | default: 'card' }}-{{ product.id }}"
+                class="product-card__quick-add-form"
+                data-product-form
+              >
+                <input type="hidden" name="id" value="{{ current_variant.id }}">
+                <button
+                  type="submit"
+                  name="add"
+                  class="product-card__btn product-card__btn--add"
+                  aria-label="Add {{ product.title | escape }} to cart"
+                >
+                  <span class="product-card__btn-text">Add to cart</span>
+                  <span class="product-card__btn-icon" aria-hidden="true">+</span>
+                </button>
+              </form>
+            </product-form>
+          {%- endif -%}
+        </div>
+      {%- endif -%}
+    </div>
+
+    {%- # Product Information Content -%}
+    <div class="product-card__content">
+      {%- if show_vendor_val -%}
+        <div class="product-card__vendor">
+          {{ product.vendor | default: 'Signature Series' | escape }}
+        </div>
+      {%- endif -%}
+
+      <h3 class="product-card__title">
+        <a href="{{ product.url | default: '#' }}" class="product-card__title-link">
+          {{ product.title | default: 'Precision Glass Accessory' }}
+        </a>
+      </h3>
+
+      {%- if show_rating_val -%}
+        <div class="product-card__rating">
+          {%- if product.metafields.reviews.rating.value != blank -%}
+            {%- assign rating_val = product.metafields.reviews.rating.value.rating | round: 1 -%}
+            {%- assign rating_count = product.metafields.reviews.rating_count.value | default: 0 -%}
+            <div class="product-card__stars" aria-label="{{ rating_val }} out of 5 stars">
+              <span class="product-card__stars-fill" style="--rating-percent: {{ rating_val | times: 20 }}%;"
+                >★★★★★</span
+              >
+            </div>
+            <span class="product-card__rating-count">({{ rating_count }})</span>
+          {%- else -%}
+            <div class="product-card__stars" aria-label="5.0 out of 5 stars">
+              <span class="product-card__stars-fill" style="--rating-percent: 100%;">★★★★★</span>
+            </div>
+            <span class="product-card__rating-count">(5.0)</span>
+          {%- endif -%}
+        </div>
+      {%- endif -%}
+
+      <div class="product-card__price">
+        {%- if product != blank -%}
+          {%- if is_on_sale -%}
+            <span class="product-card__price-sale">{{ product.price | money }}</span>
+            <s class="product-card__price-compare">{{ product.compare_at_price | money }}</s>
+          {%- else -%}
+            <span class="product-card__price-regular">
+              {%- if product.price_varies -%}
+                From {{ product.price_min | money }}
+              {%- else -%}
+                {{ product.price | money }}
+              {%- endif -%}
+            </span>
+          {%- endif -%}
+        {%- else -%}
+          <span class="product-card__price-regular">$89.00</span>
+        {%- endif -%}
+      </div>
+    </div>
+  </div>
+</div>

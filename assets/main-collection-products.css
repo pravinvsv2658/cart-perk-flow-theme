@@ -1,0 +1,226 @@
+/**
+ * Collection Page Section Styles
+ * CartPerksFlow Theme
+ */
+
+.collection-section {
+  position: relative;
+  width: 100%;
+  padding-top: var(--section-pt, 48px);
+  padding-bottom: var(--section-pb, 48px);
+  box-sizing: border-box;
+}
+
+/* Full width layout */
+.collection-section.full-width {
+  grid-column: 1 / -1;
+  width: 100%;
+  max-width: 100%;
+  padding-left: clamp(1rem, 4vw, 3rem);
+  padding-right: clamp(1rem, 4vw, 3rem);
+  margin-left: 0;
+  margin-right: 0;
+}
+
+/* Contained layout */
+.collection-section--contained {
+  max-width: var(--page-width, 1200px);
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: var(--page-margin, 20px);
+  padding-right: var(--page-margin, 20px);
+}
+
+/* Collection Header */
+.collection__header {
+  margin-bottom: clamp(2rem, 4vw, 3.5rem);
+}
+
+.collection__header--left {
+  text-align: left;
+}
+
+.collection__header--center {
+  text-align: center;
+  max-width: 800px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.collection__header--right {
+  text-align: right;
+  margin-left: auto;
+}
+
+.collection__count-wrapper {
+  margin-bottom: 0.75rem;
+}
+
+.collection__count-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.35rem 0.9rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  border-radius: 9999px;
+  background: rgba(var(--color-foreground-rgb), 0.07);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(var(--color-foreground-rgb), 0.12);
+  color: var(--color-foreground, currentColor);
+}
+
+.collection__heading {
+  margin: 0 0 0.85rem 0;
+  font-size: clamp(2rem, 4vw, 3rem);
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  color: var(--color-foreground, currentColor);
+}
+
+.collection__description {
+  font-size: clamp(0.95rem, 1.1vw, 1.125rem);
+  line-height: 1.6;
+  color: rgba(var(--color-foreground-rgb), 0.78);
+  margin: 0;
+}
+
+.collection__description p {
+  margin: 0 0 0.5rem 0;
+}
+
+.collection__description p:last-child {
+  margin-bottom: 0;
+}
+
+/* Product Grid */
+.collection__grid {
+  display: grid;
+  grid-template-columns: repeat(var(--columns-desktop, 4), minmax(0, 1fr));
+  gap: clamp(1rem, 2.5vw, 1.75rem);
+  width: 100%;
+  box-sizing: border-box;
+  align-items: stretch;
+}
+
+/* Responsive Grid Breakpoints */
+@media (max-width: 989px) {
+  .collection__grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 749px) {
+  .collection__grid {
+    grid-template-columns: repeat(var(--columns-mobile, 2), minmax(0, 1fr));
+    gap: 0.75rem;
+  }
+}
+
+/* Pagination */
+.collection__pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: clamp(2.5rem, 5vw, 4rem);
+}
+
+.collection__pagination-pages {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.collection__pagination-link,
+.collection__pagination-arrow {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2.75rem;
+  height: 2.75rem;
+  padding: 0 0.75rem;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  border-radius: 9999px;
+  text-decoration: none;
+  background: rgba(var(--color-foreground-rgb), 0.05);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(var(--color-foreground-rgb), 0.12);
+  color: var(--color-foreground, currentColor);
+  transition: all 0.25s ease;
+  box-sizing: border-box;
+}
+
+.collection__pagination-link:hover,
+.collection__pagination-arrow:hover {
+  background: rgba(var(--color-foreground-rgb), 0.12);
+  transform: translateY(-2px);
+  border-color: rgba(var(--color-foreground-rgb), 0.25);
+}
+
+.collection__pagination-link.is-current {
+  background: var(--color-foreground, #0f172a);
+  color: var(--color-background, #ffffff);
+  border-color: var(--color-foreground, #0f172a);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18);
+  pointer-events: none;
+}
+
+.collection__pagination-ellipsis {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2rem;
+  color: rgba(var(--color-foreground-rgb), 0.5);
+  font-weight: 700;
+}
+
+/* Empty Collection State */
+.collection__empty {
+  text-align: center;
+  padding: clamp(3rem, 6vw, 5rem) 1.5rem;
+  background: rgba(var(--color-foreground-rgb), 0.03);
+  border: 1px dashed rgba(var(--color-foreground-rgb), 0.15);
+  border-radius: var(--card-corner-radius, 16px);
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.collection__empty-title {
+  margin: 0 0 0.75rem 0;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--color-foreground, currentColor);
+}
+
+.collection__empty-text {
+  font-size: 1rem;
+  color: rgba(var(--color-foreground-rgb), 0.7);
+  margin: 0 0 1.75rem 0;
+}
+
+.collection__empty-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.75rem;
+  padding: 0.65rem 1.75rem;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  border-radius: 9999px;
+  text-decoration: none;
+  background: var(--color-foreground, #0f172a);
+  color: var(--color-background, #ffffff);
+  border: 1px solid var(--color-foreground, #0f172a);
+  transition: all 0.25s ease;
+}
+
+.collection__empty-btn:hover {
+  opacity: 0.9;
+  transform: translateY(-2px);
+}

@@ -1,0 +1,48 @@
+{% doc %}
+  Renders the Quick View popup modal or slide-out drawer for products with variants.
+  Supports position settings: 'center', 'left', or 'right'.
+  Supports variant display style: 'swatches' or 'dropdown'.
+
+  @param {string} [position] - Display position ('center', 'left', or 'right')
+  @param {string} [variant_style] - Variant options display style ('swatches' or 'dropdown')
+  @param {string} [section_id] - Section identifier to bind modal to parent section
+
+  @example
+  {% render 'quick-view-modal', position: section.settings.quick_view_position, variant_style: settings.variant_style, section_id: section.id %}
+{% enddoc %}
+
+{%- assign qv_position = position | default: settings.quick_view_position | default: 'center' -%}
+{%- assign qv_variant_style = variant_style | default: settings.variant_style | default: 'swatches' -%}
+{%- assign qv_id = section_id | default: 'global' -%}
+
+<quick-view-modal
+  id="QuickViewModal-{{ qv_id }}"
+  class="quick-view-modal quick-view-modal--{{ qv_position }}"
+  role="dialog"
+  aria-modal="true"
+  aria-label="Product quick view"
+  aria-hidden="true"
+  data-position="{{ qv_position }}"
+  data-variant-style="{{ qv_variant_style }}"
+  data-section-id="{{ section_id }}"
+>
+  <div class="quick-view-modal__overlay" data-quick-view-close aria-hidden="true"></div>
+
+  <div class="quick-view-modal__dialog" role="document">
+    <button
+      type="button"
+      class="quick-view-modal__close-btn"
+      data-quick-view-close
+      aria-label="Close quick view"
+    >
+      {% render 'icon', icon: 'close', width: 20, height: 20 %}
+    </button>
+
+    <div class="quick-view-modal__content" data-quick-view-content>
+      <div class="quick-view-modal__loading" data-quick-view-loading>
+        <div class="quick-view-modal__spinner" aria-hidden="true"></div>
+        <p class="quick-view-modal__loading-text">Loading product details...</p>
+      </div>
+    </div>
+  </div>
+</quick-view-modal>

@@ -1,0 +1,39 @@
+{% style %}
+  {% # Loads all font variantions with display: swap %}
+  {{ settings.type_primary_font | font_face: font_display: 'swap' }}
+  {{ settings.type_primary_font | font_modify: 'weight', 'bold' | font_face: font_display: 'swap' }}
+  {{ settings.type_primary_font | font_modify: 'weight', 'bold' | font_modify: 'style', 'italic' | font_face: font_display: 'swap' }}
+  {{ settings.type_primary_font | font_modify: 'style', 'italic' | font_face: font_display: 'swap' }}
+
+  :root {
+    --font-primary--family: {{ settings.type_primary_font.family }}, {{ settings.type_primary_font.fallback_families }};
+    --font-primary--style: {{ settings.type_primary_font.style }};
+    --font-primary--weight: {{ settings.type_primary_font.weight }};
+    --page-width: {{ settings.max_page_width }};
+    --page-margin: {{ settings.min_page_margin }}px;
+    --color-background: {{ settings.background_color }};
+    --color-background-rgb: {{ settings.background_color.red | default: 255 }}, {{ settings.background_color.green | default: 255 }}, {{ settings.background_color.blue | default: 255 }};
+    --color-foreground: {{ settings.foreground_color }};
+    --color-foreground-rgb: {{ settings.foreground_color.red | default: 51 }}, {{ settings.foreground_color.green | default: 51 }}, {{ settings.foreground_color.blue | default: 51 }};
+    --style-border-radius-inputs: {{ settings.input_corner_radius }}px;
+    --card-corner-radius: {% if settings.card_enable_rounded_corners %}{{ settings.card_corner_radius | default: 16 }}px{% else %}0px{% endif %};
+    --card-text-alignment: {{ settings.card_text_alignment | default: 'left' }};
+    --card-border-opacity: {{ settings.card_border_opacity | default: 15 | divided_by: 100.0 }};
+    --card-shadow-opacity: {{ settings.card_shadow_opacity | default: 10 | divided_by: 100.0 }};
+  }
+
+  {% for scheme in settings.color_schemes %}
+    .color-{{ scheme.id }} {
+      --color-background: {{ scheme.settings.background }};
+      --color-background-rgb: {{ scheme.settings.background.red }}, {{ scheme.settings.background.green }}, {{ scheme.settings.background.blue }};
+      --color-foreground: {{ scheme.settings.text }};
+      --color-foreground-rgb: {{ scheme.settings.text.red }}, {{ scheme.settings.text.green }}, {{ scheme.settings.text.blue }};
+      --color-button: {{ scheme.settings.button }};
+      --color-button-text: {{ scheme.settings.button_label }};
+      --color-secondary-button-text: {{ scheme.settings.secondary_button_label }};
+      --color-shadow: {{ scheme.settings.shadow }};
+      background-color: {{ scheme.settings.background }};
+      color: {{ scheme.settings.text }};
+    }
+  {% endfor %}
+{% endstyle %}

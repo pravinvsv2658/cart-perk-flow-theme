@@ -1,0 +1,215 @@
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin theme editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */
+{
+  "sections": {
+    "banner": {
+      "type": "main-banner",
+      "blocks": {
+        "banner_H7tj4e": {
+          "type": "banner",
+          "settings": {
+            "desktop_image": "shopify://shop_images/snowboard_wax.png",
+            "focal_point": "center center",
+            "overlay_opacity": 25,
+            "overlay_gradient": "bottom-to-top",
+            "enable_glass_panel": true,
+            "subheading": "New Season Collection",
+            "heading": "Refined Glass & Metal Essentials",
+            "heading_size": "heading--large",
+            "description": "<p>Engineered for high performance with a tactile glass aesthetic and precision finish.</p>",
+            "text_alignment": "left",
+            "content_vertical_position": "center",
+            "content_horizontal_position": "left",
+            "content_max_width": 640,
+            "show_button_1": true,
+            "button_label_1": "Explore Collection",
+            "button_link_1": "#",
+            "button_style_1": "primary",
+            "button_target_blank_1": false,
+            "show_button_2": true,
+            "button_label_2": "View Catalog",
+            "button_link_2": "",
+            "button_style_2": "outline",
+            "button_target_blank_2": false,
+            "banner_whole_clickable": false,
+            "banner_link": ""
+          }
+        },
+        "slide_1": {
+          "type": "banner",
+          "settings": {
+            "desktop_image": "shopify://shop_images/theme_cover_image.jpg",
+            "focal_point": "center center",
+            "overlay_opacity": 25,
+            "overlay_gradient": "bottom-to-top",
+            "enable_glass_panel": true,
+            "subheading": "Prism Collection",
+            "heading": "Refined Glass & Metal Essentials",
+            "heading_size": "heading--large",
+            "description": "<p>Engineered for high performance with a tactile glass aesthetic and precision finish.</p>",
+            "text_alignment": "left",
+            "content_vertical_position": "center",
+            "content_horizontal_position": "left",
+            "content_max_width": 640,
+            "show_button_1": true,
+            "button_label_1": "Explore Collection",
+            "button_link_1": "/",
+            "button_style_1": "primary",
+            "button_target_blank_1": false,
+            "show_button_2": true,
+            "button_label_2": "Our Story",
+            "button_link_2": "/",
+            "button_style_2": "outline",
+            "button_target_blank_2": false,
+            "banner_whole_clickable": false,
+            "banner_link": ""
+          }
+        },
+        "slide_2": {
+          "type": "banner",
+          "settings": {
+            "desktop_image": "shopify://shop_images/Main.jpg",
+            "focal_point": "center center",
+            "overlay_opacity": 25,
+            "overlay_gradient": "bottom-to-top",
+            "enable_glass_panel": true,
+            "subheading": "New Release",
+            "heading": "Architectural Minimalism For Desk & Travel",
+            "heading_size": "heading--large",
+            "description": "<p>Translucent surfaces, fine borders, and calibrated depth designed for modern lifestyles.</p>",
+            "text_alignment": "left",
+            "content_vertical_position": "center",
+            "content_horizontal_position": "left",
+            "content_max_width": 640,
+            "show_button_1": true,
+            "button_label_1": "View Workspace",
+            "button_link_1": "/",
+            "button_style_1": "primary",
+            "button_target_blank_1": false,
+            "show_button_2": true,
+            "button_label_2": "Catalog",
+            "button_link_2": "/",
+            "button_style_2": "outline",
+            "button_target_blank_2": false,
+            "banner_whole_clickable": false,
+            "banner_link": ""
+          }
+        },
+        "banner_mArazg": {
+          "type": "banner",
+          "settings": {
+            "desktop_image": "shopify://shop_images/theme_cover_image.jpg",
+            "focal_point": "center center",
+            "overlay_opacity": 25,
+            "overlay_gradient": "bottom-to-top",
+            "enable_glass_panel": true,
+            "subheading": "Prism Collection",
+            "heading": "Refined Glass & Metal Essentials",
+            "heading_size": "heading--large",
+            "description": "<p>Engineered for high performance with a tactile glass aesthetic and precision finish.</p>",
+            "text_alignment": "left",
+            "content_vertical_position": "center",
+            "content_horizontal_position": "left",
+            "content_max_width": 640,
+            "show_button_1": true,
+            "button_label_1": "Explore Collection",
+            "button_link_1": "/",
+            "button_style_1": "primary",
+            "button_target_blank_1": false,
+            "show_button_2": true,
+            "button_label_2": "Our Story",
+            "button_link_2": "/",
+            "button_style_2": "outline",
+            "button_target_blank_2": false,
+            "banner_whole_clickable": false,
+            "banner_link": ""
+          }
+        }
+      },
+      "block_order": [
+        "banner_H7tj4e",
+        "slide_1",
+        "slide_2",
+        "banner_mArazg"
+      ],
+      "settings": {
+        "color_scheme": "scheme-2",
+        "banner_height": "large",
+        "custom_min_height": 0,
+        "full_width": true,
+        "enable_rounded_corners": false,
+        "corner_radius": 16,
+        "padding_top": 0,
+        "padding_bottom": 0,
+        "desktop_content_width": "normal",
+        "mobile_content_width": "contained",
+        "mobile_text_alignment": "center",
+        "show_arrows": true,
+        "arrow_design": "glass",
+        "arrow_position": "sides",
+        "arrow_size": "medium",
+        "enable_autoplay": true,
+        "autoplay_interval": 5,
+        "show_dots": true,
+        "dot_style": "progress"
+      }
+    },
+    "featured_collection": {
+      "type": "featured-collection",
+      "settings": {
+        "color_scheme": "scheme-1",
+        "subheading": "Curated Selection",
+        "heading": "Featured Collection",
+        "heading_size": "heading--medium",
+        "description": "<p>Discover precision-engineered tech and lifestyle accessories crafted with a glass aesthetic.</p>",
+        "text_alignment": "center",
+        "collection": "new-arrivals",
+        "products_to_show": 8,
+        "columns_desktop": 5,
+        "columns_mobile": "2",
+        "layout_style": "slider",
+        "show_view_all": true,
+        "view_all_style": "outline",
+        "enable_loop": false,
+        "show_arrows": true,
+        "arrow_design": "glass",
+        "arrow_position": "sides",
+        "arrow_size": "medium",
+        "show_dots": true,
+        "dot_style": "progress",
+        "enable_autoplay": false,
+        "autoplay_interval": 5,
+        "enable_glass_cards": true,
+        "card_image_ratio": "portrait",
+        "show_vendor": true,
+        "show_rating": true,
+        "quick_view_mode": "standard",
+        "quick_view_position": "right",
+        "show_secondary_image": true,
+        "show_sale_badge": true,
+        "show_stock_badge": true,
+        "full_width": true,
+        "enable_rounded_corners": true,
+        "corner_radius": 16,
+        "padding_top": 48,
+        "padding_bottom": 48
+      }
+    },
+    "main": {
+      "type": "hello-world",
+      "settings": {}
+    }
+  },
+  "order": [
+    "banner",
+    "featured_collection",
+    "main"
+  ]
+}

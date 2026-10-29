@@ -1,0 +1,69 @@
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin theme editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */
+{
+  "current": {
+    "color_schemes": {
+      "scheme-1": {
+        "settings": {
+          "background": "#F8FAFC",
+          "background_gradient": "",
+          "text": "#0F172A",
+          "button": "#0F172A",
+          "button_label": "#FFFFFF",
+          "secondary_button_label": "#0F172A",
+          "shadow": "#000000"
+        }
+      },
+      "scheme-2": {
+        "settings": {
+          "background": "#0F172A",
+          "background_gradient": "",
+          "text": "#F8FAFC",
+          "button": "#38BDF8",
+          "button_label": "#0F172A",
+          "secondary_button_label": "#F8FAFC",
+          "shadow": "#000000"
+        }
+      },
+      "scheme-3": {
+        "settings": {
+          "background": "#1E293B",
+          "background_gradient": "",
+          "text": "#FFFFFF",
+          "button": "#FFFFFF",
+          "button_label": "#0F172A",
+          "secondary_button_label": "#38BDF8",
+          "shadow": "#000000"
+        }
+      }
+    },
+    "card_style": "glass",
+    "card_image_ratio": "portrait",
+    "card_text_alignment": "left",
+    "card_show_vendor": true,
+    "card_show_rating": true,
+    "card_quick_view_mode": "standard",
+    "card_show_secondary_image": true,
+    "card_show_sale_badge": true,
+    "card_show_stock_badge": true,
+    "card_enable_rounded_corners": true,
+    "card_corner_radius": 16,
+    "card_border_opacity": 15,
+    "card_shadow_opacity": 10,
+    "cart_type": "drawer",
+    "cart_show_note": true,
+    "cart_show_discount_field": true,
+    "cart_show_free_shipping": true,
+    "cart_free_shipping_threshold": 50,
+    "quick_view_position": "center",
+    "variant_style": "swatches",
+    "custom_color_swatches": "white: #ffffff\nblack: #000000\nred: #ef4444\ngreen: #22c55e\nblue: #3b82f6\nyellow: #eab308\norange: #f97316\npurple: #a855f7\npink: #ec4899\ngray: #6b7280\ngrey: #6b7280\nnavy: #1e3a8a\nbrown: #78350f\nbeige: #f5f5dc\ngold: #d97706\nsilver: #cbd5e1\ncharcoal: #334155\nteal: #0d9488\nolive: #65a30d\nmaroon: #881337\ncream: #fef3c7\ncoral: #f43f5e\nlavender: #e9d5ff\namber: #d97706\nslate: #64748b\nkhaki: #c3b091\nsand: #e2d4b7"
+  }
+}

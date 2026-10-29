@@ -1,0 +1,601 @@
+{% comment %}
+  Search Page Section - CartPerksFlow Theme
+  Renders search form, search results using the global product card component,
+  orders results with products first, followed by blog posts, then pages,
+  and supports type tabs, pagination, quick view modal, and AJAX cart actions matching collection page.
+{% endcomment %}
+
+{{ 'search.css' | asset_url | stylesheet_tag }}
+<script src="{{ 'search.js' | asset_url }}" defer="defer"></script>
+
+{%- liquid
+  assign qv_mode = section.settings.quick_view_mode | default: 'standard'
+  assign enable_quick_view_assets = false
+  if qv_mode != 'none'
+    assign enable_quick_view_assets = true
+  endif
+-%}
+
+{%- if enable_quick_view_assets -%}
+  {{ 'quick-view.css' | asset_url | stylesheet_tag }}
+  <script src="{{ 'quick-view.js' | asset_url }}" defer="defer"></script>
+  {% render 'quick-view-modal',
+    position: section.settings.quick_view_position,
+    variant_style: settings.variant_style,
+    section_id: section.id
+  %}
+{%- endif -%}
+
+{%- liquid
+  assign section_id = section.id
+  assign current_scheme = section.settings.color_scheme
+  assign products_per_page = section.settings.products_per_page | default: 16
+  assign active_type = 'all'
+  if search.types.size == 1
+    assign active_type = search.types.first
+  endif
+-%}
+
+{%- style -%}
+  #SearchSection-{{ section_id }} {
+    --section-pt: {{ section.settings.padding_top }}px;
+    --section-pb: {{ section.settings.padding_bottom }}px;
+    --columns-desktop: {{ section.settings.columns_desktop }};
+    --columns-mobile: {{ section.settings.columns_mobile }};
+    --card-corner-radius: {% if section.settings.enable_rounded_corners %}{{ section.settings.corner_radius }}px{% else %}0px{% endif %};
+  }
+
+  @media screen and (max-width: 989px) {
+    #SearchSection-{{ section_id }} .search__grid {
+      grid-template-columns: repeat({% if section.settings.columns_desktop < 3 %}{{ section.settings.columns_desktop }}{% else %}3{% endif %}, minmax(0, 1fr));
+    }
+  }
+
+  @media screen and (max-width: 749px) {
+    #SearchSection-{{ section_id }} .search__grid {
+      grid-template-columns: repeat({{ section.settings.columns_mobile | default: 2 }}, minmax(0, 1fr));
+    }
+  }
+{%- endstyle -%}
+
+<section
+  id="SearchSection-{{ section_id }}"
+  class="search-section {% if section.settings.full_width %}full-width{% else %}search-section--contained{% endif %} color-{{ current_scheme.id | default: current_scheme }}"
+  data-section-id="{{ section_id }}"
+>
+  <div class="search__header search__header--{{ section.settings.header_alignment }}">
+    <h1 class="search__heading">{{ 'search.title' | t }}</h1>
+
+    <div class="search__form-wrap">
+      <form action="{{ routes.search_url }}" method="get" role="search" class="search__form">
+        <div class="search__input-wrap">
+          <span class="search__input-icon" aria-hidden="true">
+            {% render 'icon', icon: 'search', width: 20, height: 20 %}
+          </span>
+          <input
+            type="search"
+            name="q"
+            value="{{ search.terms | escape }}"
+            placeholder="{{ 'search.placeholder' | t }}"
+            class="search__input"
+            aria-label="{{ 'search.title' | t }}"
+          >
+          <button
+            type="button"
+            class="search__clear-btn{% unless search.terms != blank %} is-hidden{% endunless %}"
+            aria-label="{{ 'search.clear' | t }}"
+            title="{{ 'search.clear' | t }}"
+          >
+            {% render 'icon', icon: 'close', width: 14, height: 14 %}
+          </button>
+          <button type="submit" class="search__submit-btn">{{ 'search.submit' | t }}</button>
+        </div>
+      </form>
+    </div>
+
+    {%- if search.performed -%}
+      {%- if section.settings.show_product_count -%}
+        {%- if search.results_count > 0 -%}
+          <div class="search__count-wrapper">
+            <span class="search__count-badge">
+              {{ 'search.results_for_html' | t: terms: search.terms, count: search.results_count }}
+            </span>
+          </div>
+        {%- endif -%}
+      {%- endif -%}
+
+      <div class="search__tabs-nav" aria-label="Filter results by type">
+        <a
+          href="{{ routes.search_url }}?q={{ search.terms | url_encode }}"
+          class="search__tab-pill{% if active_type == 'all' %} is-active{% endif %}"
+        >
+          All results
+        </a>
+        <a
+          href="{{ routes.search_url }}?q={{ search.terms | url_encode }}&type=product"
+          class="search__tab-pill{% if active_type == 'product' %} is-active{% endif %}"
+        >
+          Products
+        </a>
+        <a
+          href="{{ routes.search_url }}?q={{ search.terms | url_encode }}&type=article"
+          class="search__tab-pill{% if active_type == 'article' %} is-active{% endif %}"
+        >
+          Blog posts
+        </a>
+        <a
+          href="{{ routes.search_url }}?q={{ search.terms | url_encode }}&type=page"
+          class="search__tab-pill{% if active_type == 'page' %} is-active{% endif %}"
+        >
+          Pages
+        </a>
+      </div>
+    {%- endif -%}
+  </div>
+
+  {%- if search.performed -%}
+    <div class="search__content">
+      {%- if search.results_count == 0 -%}
+        <div class="search__empty">
+          <h2 class="search__empty-title">
+            {%- if active_type == 'product' -%}
+              No products found for "{{ search.terms }}"
+            {%- elsif active_type == 'article' -%}
+              No blog posts found for "{{ search.terms }}"
+            {%- elsif active_type == 'page' -%}
+              No pages found for "{{ search.terms }}"
+            {%- else -%}
+              {{ 'search.no_results_html' | t: terms: search.terms }}
+            {%- endif -%}
+          </h2>
+          <p class="search__empty-text">
+            {%- if active_type != 'all' -%}
+              No matches found in {{ active_type | capitalize }}s. Check the other tabs above or view all results.
+            {%- else -%}
+              Check your spelling or try searching with different keywords.
+            {%- endif -%}
+          </p>
+          <div class="search__empty-actions">
+            {%- if active_type != 'all' -%}
+              <a href="{{ routes.search_url }}?q={{ search.terms | url_encode }}" class="search__empty-btn">
+                <span>View all results for "{{ search.terms }}"</span>
+                {% render 'icon', icon: 'arrow-right', width: 14, height: 14 %}
+              </a>
+            {%- endif -%}
+            <a
+              href="{{ routes.all_products_collection_url }}"
+              class="search__empty-btn{% if active_type != 'all' %} search__empty-btn--secondary{% endif %}"
+            >
+              <span>Explore all products</span>
+              {% render 'icon', icon: 'arrow-right', width: 14, height: 14 %}
+            </a>
+          </div>
+        </div>
+      {%- else -%}
+        {%- paginate search.results by products_per_page -%}
+          {%- liquid
+            assign product_count = 0
+            assign article_count = 0
+            assign page_count = 0
+
+            for result in search.results
+              if result.object_type == 'product'
+                assign product_count = product_count | plus: 1
+              elsif result.object_type == 'article'
+                assign article_count = article_count | plus: 1
+              elsif result.object_type == 'page'
+                assign page_count = page_count | plus: 1
+              endif
+            endfor
+          -%}
+
+          <div class="search__results-container">
+            {%- # 1. FIRST: Products -%}
+            {%- if product_count > 0 -%}
+              <div class="search__group search__group--products">
+                {%- if article_count > 0 or page_count > 0 -%}
+                  <div class="search__group-header">
+                    <h2 class="search__group-title">
+                      <span>Products</span>
+                      <span class="search__group-count">({{ product_count }})</span>
+                    </h2>
+                  </div>
+                {%- endif -%}
+
+                <div class="search__grid">
+                  {%- for result in search.results -%}
+                    {%- if result.object_type == 'product' -%}
+                      {% render 'product-card',
+                        product: result,
+                        media_aspect_ratio: section.settings.card_image_ratio,
+                        show_secondary_image: section.settings.show_secondary_image,
+                        show_vendor: section.settings.show_vendor,
+                        show_rating: section.settings.show_rating,
+                        quick_view_mode: qv_mode,
+                        show_sale_badge: section.settings.show_sale_badge,
+                        show_stock_badge: section.settings.show_stock_badge,
+                        enable_glass: section.settings.enable_glass_cards,
+                        section_id: section_id
+                      %}
+                    {%- endif -%}
+                  {%- endfor -%}
+                </div>
+              </div>
+            {%- endif -%}
+
+            {%- # 2. SECOND: Blog Posts & Articles -%}
+            {%- if article_count > 0 -%}
+              <div class="search__group search__group--articles">
+                {%- if product_count > 0 or page_count > 0 -%}
+                  <div class="search__group-header">
+                    <h2 class="search__group-title">
+                      <span>Blog posts & Articles</span>
+                      <span class="search__group-count">({{ article_count }})</span>
+                    </h2>
+                  </div>
+                {%- endif -%}
+
+                <div class="search__grid">
+                  {%- for result in search.results -%}
+                    {%- if result.object_type == 'article' -%}
+                      {%- assign featured_image = result.featured_image | default: result.image -%}
+                      <div class="product-card product-card--search-article{% if section.settings.enable_glass_cards %} product-card--glass{% else %} product-card--card{% endif %}">
+                        {%- if featured_image != blank -%}
+                          <div class="product-card__media-wrapper product-card__media-wrapper--{{ section.settings.card_image_ratio | default: 'portrait' }}">
+                            <a
+                              href="{{ result.url }}"
+                              class="product-card__media-link"
+                              aria-label="{{ result.title | escape }}"
+                            >
+                              <img
+                                src="{{ featured_image | image_url: width: 600 }}"
+                                alt="{{ result.title | escape }}"
+                                class="product-card__image"
+                                width="300"
+                                height="300"
+                                loading="lazy"
+                              >
+                            </a>
+                          </div>
+                        {%- endif -%}
+
+                        <div class="product-card__content">
+                          <div class="product-card__vendor">
+                            <span class="search-badge search-badge--article">Blog Post</span>
+                          </div>
+
+                          <h3 class="product-card__title">
+                            <a href="{{ result.url }}" class="product-card__title-link">{{ result.title }}</a>
+                          </h3>
+
+                          <p class="search-card__excerpt">
+                            {{ result.content | strip_html | truncatewords: 22 }}
+                          </p>
+
+                          <div class="search-card__link-wrap">
+                            <a href="{{ result.url }}" class="search-card__read-more">
+                              <span>Read article</span>
+                              {% render 'icon', icon: 'arrow-right', width: 14, height: 14 %}
+                            </a>
+                          </div>
+                        </div>
+                      </div>
+                    {%- endif -%}
+                  {%- endfor -%}
+                </div>
+              </div>
+            {%- endif -%}
+
+            {%- # 3. THIRD: Pages -%}
+            {%- if page_count > 0 -%}
+              <div class="search__group search__group--pages">
+                {%- if product_count > 0 or article_count > 0 -%}
+                  <div class="search__group-header">
+                    <h2 class="search__group-title">
+                      <span>Pages</span>
+                      <span class="search__group-count">({{ page_count }})</span>
+                    </h2>
+                  </div>
+                {%- endif -%}
+
+                <div class="search__grid">
+                  {%- for result in search.results -%}
+                    {%- if result.object_type == 'page' -%}
+                      {%- assign featured_image = result.featured_image | default: result.image -%}
+                      <div class="product-card product-card--search-article{% if section.settings.enable_glass_cards %} product-card--glass{% else %} product-card--card{% endif %}">
+                        {%- if featured_image != blank -%}
+                          <div class="product-card__media-wrapper product-card__media-wrapper--{{ section.settings.card_image_ratio | default: 'portrait' }}">
+                            <a
+                              href="{{ result.url }}"
+                              class="product-card__media-link"
+                              aria-label="{{ result.title | escape }}"
+                            >
+                              <img
+                                src="{{ featured_image | image_url: width: 600 }}"
+                                alt="{{ result.title | escape }}"
+                                class="product-card__image"
+                                width="300"
+                                height="300"
+                                loading="lazy"
+                              >
+                            </a>
+                          </div>
+                        {%- endif -%}
+
+                        <div class="product-card__content">
+                          <div class="product-card__vendor">
+                            <span class="search-badge search-badge--page">Page</span>
+                          </div>
+
+                          <h3 class="product-card__title">
+                            <a href="{{ result.url }}" class="product-card__title-link">{{ result.title }}</a>
+                          </h3>
+
+                          <p class="search-card__excerpt">
+                            {{ result.content | strip_html | truncatewords: 22 }}
+                          </p>
+
+                          <div class="search-card__link-wrap">
+                            <a href="{{ result.url }}" class="search-card__read-more">
+                              <span>View page</span>
+                              {% render 'icon', icon: 'arrow-right', width: 14, height: 14 %}
+                            </a>
+                          </div>
+                        </div>
+                      </div>
+                    {%- endif -%}
+                  {%- endfor -%}
+                </div>
+              </div>
+            {%- endif -%}
+          </div>
+
+          {%- if paginate.pages > 1 -%}
+            <nav class="search__pagination" aria-label="Pagination">
+              {%- if paginate.previous -%}
+                <a
+                  href="{{ paginate.previous.url }}"
+                  class="search__pagination-arrow search__pagination-prev"
+                  aria-label="Previous page"
+                >
+                  {% render 'icon', icon: 'arrow-left', width: 18, height: 18 %}
+                </a>
+              {%- endif -%}
+
+              <div class="search__pagination-pages">
+                {%- for part in paginate.parts -%}
+                  {%- if part.is_link -%}
+                    <a href="{{ part.url }}" class="search__pagination-link">{{ part.title }}</a>
+                  {%- else -%}
+                    {%- if part.title == paginate.current_page -%}
+                      <span class="search__pagination-link is-current" aria-current="page">{{ part.title }}</span>
+                    {%- else -%}
+                      <span class="search__pagination-ellipsis">{{ part.title }}</span>
+                    {%- endif -%}
+                  {%- endif -%}
+                {%- endfor -%}
+              </div>
+
+              {%- if paginate.next -%}
+                <a
+                  href="{{ paginate.next.url }}"
+                  class="search__pagination-arrow search__pagination-next"
+                  aria-label="Next page"
+                >
+                  {% render 'icon', icon: 'arrow-right', width: 18, height: 18 %}
+                </a>
+              {%- endif -%}
+            </nav>
+          {%- endif -%}
+        {%- endpaginate -%}
+      {%- endif -%}
+    </div>
+  {%- endif -%}
+</section>
+
+{% schema %}
+{
+  "name": "Search",
+  "tag": "section",
+  "class": "search-page-section",
+  "settings": [
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "Color scheme",
+      "default": "scheme-1"
+    },
+    {
+      "type": "header",
+      "content": "Search header"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_product_count",
+      "label": "Show results count badge",
+      "default": true
+    },
+    {
+      "type": "select",
+      "id": "header_alignment",
+      "label": "Header alignment",
+      "options": [
+        { "value": "left", "label": "Left" },
+        { "value": "center", "label": "Center" },
+        { "value": "right", "label": "Right" }
+      ],
+      "default": "center"
+    },
+    {
+      "type": "header",
+      "content": "Grid & Layout"
+    },
+    {
+      "type": "range",
+      "id": "products_per_page",
+      "label": "Results per page",
+      "min": 8,
+      "max": 36,
+      "step": 4,
+      "default": 16
+    },
+    {
+      "type": "range",
+      "id": "columns_desktop",
+      "label": "Columns on desktop",
+      "min": 2,
+      "max": 5,
+      "step": 1,
+      "default": 4
+    },
+    {
+      "type": "select",
+      "id": "columns_mobile",
+      "label": "Columns on mobile",
+      "options": [
+        { "value": "1", "label": "1" },
+        { "value": "2", "label": "2" }
+      ],
+      "default": "2"
+    },
+    {
+      "type": "header",
+      "content": "Product card settings"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_glass_cards",
+      "label": "Enable glassmorphism card style",
+      "default": true
+    },
+    {
+      "type": "select",
+      "id": "card_image_ratio",
+      "label": "Image ratio",
+      "options": [
+        { "value": "portrait", "label": "Portrait (3:4)" },
+        { "value": "square", "label": "Square (1:1)" },
+        { "value": "adapt", "label": "Adapt to image" }
+      ],
+      "default": "portrait"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_vendor",
+      "label": "Show vendor / brand",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_rating",
+      "label": "Show reviews / rating",
+      "default": true
+    },
+    {
+      "type": "select",
+      "id": "quick_view_mode",
+      "label": "Quick view",
+      "options": [
+        {
+          "value": "none",
+          "label": "None"
+        },
+        {
+          "value": "standard",
+          "label": "Standard (Add to cart & quick view for variants)"
+        },
+        {
+          "value": "all",
+          "label": "Quick view modal for all"
+        }
+      ],
+      "default": "standard",
+      "info": "Choose how quick action behaves: None (disabled), Standard (direct Add to cart for single-variant products, Quick view for multi-variant products), or Quick view modal for all."
+    },
+    {
+      "type": "select",
+      "id": "quick_view_position",
+      "label": "Quick view style / position",
+      "options": [
+        {
+          "value": "center",
+          "label": "Center popup modal"
+        },
+        {
+          "value": "left",
+          "label": "Left slide-out drawer"
+        },
+        {
+          "value": "right",
+          "label": "Right slide-out drawer"
+        }
+      ],
+      "default": "center"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_secondary_image",
+      "label": "Show secondary image on hover",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_sale_badge",
+      "label": "Show sale badge",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_stock_badge",
+      "label": "Show sold-out badge",
+      "default": true
+    },
+    {
+      "type": "header",
+      "content": "Section layout & spacing"
+    },
+    {
+      "type": "checkbox",
+      "id": "full_width",
+      "label": "Full width layout",
+      "default": false
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_rounded_corners",
+      "label": "Enable rounded card corners",
+      "default": true
+    },
+    {
+      "type": "range",
+      "id": "corner_radius",
+      "label": "Card corner radius",
+      "min": 0,
+      "max": 32,
+      "step": 2,
+      "unit": "px",
+      "default": 16
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "Top padding",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "default": 48
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "Bottom padding",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "default": 48
+    }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,650 @@
+{{ 'featured-collection.css' | asset_url | stylesheet_tag }}
+<script src="{{ 'featured-collection.js' | asset_url }}" defer="defer"></script>
+
+{%- liquid
+  assign qv_mode = section.settings.quick_view_mode | default: 'standard'
+  assign enable_quick_view_assets = false
+  if qv_mode != 'none'
+    assign enable_quick_view_assets = true
+  endif
+-%}
+
+{%- if enable_quick_view_assets -%}
+  {{ 'quick-view.css' | asset_url | stylesheet_tag }}
+  <script src="{{ 'quick-view.js' | asset_url }}" defer="defer"></script>
+  {% render 'quick-view-modal',
+    position: section.settings.quick_view_position,
+    variant_style: settings.variant_style,
+    section_id: section.id
+  %}
+{%- endif -%}
+
+{%- liquid
+  assign section_id = section.id
+  assign current_scheme = section.settings.color_scheme
+  assign selected_collection = section.settings.collection
+  assign products_limit = section.settings.products_to_show
+
+  assign is_slider = false
+  if section.settings.layout_style == 'slider'
+    assign is_slider = true
+  elsif section.settings.layout_style == blank and section.settings.enable_slider
+    assign is_slider = true
+  endif
+
+  assign show_header_arrows = false
+  if is_slider and section.settings.show_arrows and section.settings.arrow_position == 'header'
+    assign show_header_arrows = true
+  endif
+
+  assign show_side_arrows = false
+  if is_slider and section.settings.show_arrows and section.settings.arrow_position == 'sides'
+    assign show_side_arrows = true
+  endif
+
+  assign show_bottom_arrows = false
+  if is_slider and section.settings.show_arrows and section.settings.arrow_position == 'bottom'
+    assign show_bottom_arrows = true
+  endif
+
+  assign show_header = false
+  if section.settings.heading != blank or section.settings.subheading != blank or section.settings.description != blank or show_header_arrows
+    assign show_header = true
+  endif
+
+  assign show_bottom_controls = false
+  if is_slider
+    if section.settings.show_dots or show_bottom_arrows
+      assign show_bottom_controls = true
+    endif
+  endif
+
+  assign products_count = 0
+  if selected_collection != blank and selected_collection.products_count > 0
+    assign products_count = selected_collection.products_count | at_most: products_limit
+  else
+    assign products_count = products_limit
+  endif
+-%}
+
+{%- style -%}
+  #FeaturedCollection-{{ section_id }} {
+    --section-pt: {{ section.settings.padding_top }}px;
+    --section-pb: {{ section.settings.padding_bottom }}px;
+    --columns-desktop: {{ section.settings.columns_desktop }};
+    --columns-mobile: {{ section.settings.columns_mobile }};
+    --card-corner-radius: {% if section.settings.enable_rounded_corners %}{{ section.settings.corner_radius }}px{% else %}0px{% endif %};
+  }
+{%- endstyle -%}
+
+<section
+  id="FeaturedCollection-{{ section_id }}"
+  class="featured-collection-section {% if section.settings.full_width %}full-width{% else %}featured-collection-section--contained{% endif %} color-{{ current_scheme.id | default: current_scheme }}"
+  data-section-id="{{ section_id }}"
+  data-slider-enabled="{{ is_slider }}"
+  data-columns-desktop="{{ section.settings.columns_desktop }}"
+  data-columns-mobile="{{ section.settings.columns_mobile }}"
+  data-show-arrows="{{ section.settings.show_arrows }}"
+  data-show-dots="{{ section.settings.show_dots }}"
+  data-autoplay="{{ section.settings.enable_autoplay }}"
+  data-autoplay-interval="{{ section.settings.autoplay_interval | default: 5 | times: 1000 }}"
+  data-infinite="{{ section.settings.enable_loop | default: false }}"
+>
+  {%- # Section Header -%}
+  {%- if show_header -%}
+    <div class="featured-collection__header-wrapper">
+      <div class="featured-collection__header featured-collection__header--{{ section.settings.text_alignment }}">
+        {%- if section.settings.subheading != blank -%}
+          <div class="featured-collection__subheading">
+            <span class="featured-collection__eyebrow-badge">{{ section.settings.subheading }}</span>
+          </div>
+        {%- endif -%}
+
+        {%- if section.settings.heading != blank -%}
+          <h2 class="featured-collection__heading {{ section.settings.heading_size }}">
+            {{ section.settings.heading }}
+          </h2>
+        {%- endif -%}
+
+        {%- if section.settings.description != blank -%}
+          <div class="featured-collection__description">
+            {{ section.settings.description }}
+          </div>
+        {%- endif -%}
+      </div>
+
+      {%- if show_header_arrows -%}
+        <div class="featured-collection__header-arrows featured-collection__arrows--{{ section.settings.arrow_design }} featured-collection__arrows--{{ section.settings.arrow_size }}">
+          <button
+            type="button"
+            class="slider-arrow slider-arrow--prev featured-collection__arrow featured-collection__arrow--prev"
+            aria-label="Previous products"
+          >
+            {% render 'icon', icon: 'arrow-left', width: 18, height: 18 %}
+          </button>
+          <button
+            type="button"
+            class="slider-arrow slider-arrow--next featured-collection__arrow featured-collection__arrow--next"
+            aria-label="Next products"
+          >
+            {% render 'icon', icon: 'arrow-right', width: 18, height: 18 %}
+          </button>
+        </div>
+      {%- endif -%}
+    </div>
+  {%- endif -%}
+
+  {%- # Products Grid / Slider -%}
+  <div class="featured-collection__content">
+    {%- if is_slider -%}
+      <div class="featured-collection__slider-wrapper">
+        {%- if show_side_arrows -%}
+          <button
+            type="button"
+            class="slider-arrow slider-arrow--side slider-arrow--side-prev slider-arrow--prev slider-arrow--{{ section.settings.arrow_design }} slider-arrow--{{ section.settings.arrow_size }} featured-collection__arrow featured-collection__arrow--side featured-collection__arrow--side-prev featured-collection__arrow--prev featured-collection__arrow--{{ section.settings.arrow_design }} featured-collection__arrow--{{ section.settings.arrow_size }}"
+            aria-label="Previous products"
+          >
+            {% render 'icon', icon: 'arrow-left', width: 20, height: 20 %}
+          </button>
+        {%- endif -%}
+
+        <div class="featured-collection__grid featured-collection__grid--slider" tabindex="0">
+          {%- if selected_collection != blank and selected_collection.products_count > 0 -%}
+            {%- for product in selected_collection.products limit: products_limit -%}
+              <div class="featured-collection__slide">
+                {% render 'product-card',
+                  product: product,
+                  media_aspect_ratio: section.settings.card_image_ratio,
+                  show_secondary_image: section.settings.show_secondary_image,
+                  show_vendor: section.settings.show_vendor,
+                  show_rating: section.settings.show_rating,
+                  quick_view_mode: qv_mode,
+                  show_sale_badge: section.settings.show_sale_badge,
+                  show_stock_badge: section.settings.show_stock_badge,
+                  enable_glass: section.settings.enable_glass_cards,
+                  section_id: section_id
+                %}
+              </div>
+            {%- endfor -%}
+          {%- else -%}
+            {%- for i in (1..products_limit) -%}
+              <div class="featured-collection__slide">
+                {% render 'product-card',
+                  product: nil,
+                  media_aspect_ratio: section.settings.card_image_ratio,
+                  show_secondary_image: false,
+                  show_vendor: section.settings.show_vendor,
+                  show_rating: section.settings.show_rating,
+                  quick_view_mode: qv_mode,
+                  show_sale_badge: section.settings.show_sale_badge,
+                  show_stock_badge: section.settings.show_stock_badge,
+                  enable_glass: section.settings.enable_glass_cards,
+                  section_id: section_id
+                %}
+              </div>
+            {%- endfor -%}
+          {%- endif -%}
+        </div>
+
+        {%- if show_side_arrows -%}
+          <button
+            type="button"
+            class="slider-arrow slider-arrow--side slider-arrow--side-next slider-arrow--next slider-arrow--{{ section.settings.arrow_design }} slider-arrow--{{ section.settings.arrow_size }} featured-collection__arrow featured-collection__arrow--side featured-collection__arrow--side-next featured-collection__arrow--next featured-collection__arrow--{{ section.settings.arrow_design }} featured-collection__arrow--{{ section.settings.arrow_size }}"
+            aria-label="Next products"
+          >
+            {% render 'icon', icon: 'arrow-right', width: 20, height: 20 %}
+          </button>
+        {%- endif -%}
+      </div>
+
+      {%- # Bottom Controls & Pagination -%}
+      {%- if show_bottom_controls -%}
+        <div class="featured-collection__bottom-controls">
+          {%- if show_bottom_arrows -%}
+            <button
+              type="button"
+              class="slider-arrow slider-arrow--prev slider-arrow--{{ section.settings.arrow_design }} slider-arrow--{{ section.settings.arrow_size }} featured-collection__arrow featured-collection__arrow--prev featured-collection__arrow--{{ section.settings.arrow_design }} featured-collection__arrow--{{ section.settings.arrow_size }}"
+              aria-label="Previous products"
+            >
+              {% render 'icon', icon: 'arrow-left', width: 18, height: 18 %}
+            </button>
+          {%- endif -%}
+
+          {%- if section.settings.show_dots and products_count > 1 -%}
+            <div
+              class="featured-collection__dots-container featured-collection__dots--{{ section.settings.dot_style }}"
+              role="tablist"
+              aria-label="Product navigation"
+            ></div>
+          {%- endif -%}
+
+          {%- if show_bottom_arrows -%}
+            <button
+              type="button"
+              class="slider-arrow slider-arrow--next slider-arrow--{{ section.settings.arrow_design }} slider-arrow--{{ section.settings.arrow_size }} featured-collection__arrow featured-collection__arrow--next featured-collection__arrow--{{ section.settings.arrow_design }} featured-collection__arrow--{{ section.settings.arrow_size }}"
+              aria-label="Next products"
+            >
+              {% render 'icon', icon: 'arrow-right', width: 18, height: 18 %}
+            </button>
+          {%- endif -%}
+        </div>
+      {%- endif -%}
+    {%- else -%}
+      <div class="featured-collection__grid">
+        {%- if selected_collection != blank and selected_collection.products_count > 0 -%}
+          {%- for product in selected_collection.products limit: products_limit -%}
+            {% render 'product-card',
+              product: product,
+              media_aspect_ratio: section.settings.card_image_ratio,
+              show_secondary_image: section.settings.show_secondary_image,
+              show_vendor: section.settings.show_vendor,
+              show_rating: section.settings.show_rating,
+              quick_view_mode: qv_mode,
+              show_sale_badge: section.settings.show_sale_badge,
+              show_stock_badge: section.settings.show_stock_badge,
+              enable_glass: section.settings.enable_glass_cards,
+              section_id: section_id
+            %}
+          {%- endfor -%}
+        {%- else -%}
+          {%- for i in (1..products_limit) -%}
+            {% render 'product-card',
+              product: nil,
+              media_aspect_ratio: section.settings.card_image_ratio,
+              show_secondary_image: false,
+              show_vendor: section.settings.show_vendor,
+              show_rating: section.settings.show_rating,
+              quick_view_mode: qv_mode,
+              show_sale_badge: section.settings.show_sale_badge,
+              show_stock_badge: section.settings.show_stock_badge,
+              enable_glass: section.settings.enable_glass_cards,
+              section_id: section_id
+            %}
+          {%- endfor -%}
+        {%- endif -%}
+      </div>
+    {%- endif -%}
+  </div>
+
+  {%- # View All Button -%}
+  {%- if section.settings.show_view_all and selected_collection != blank -%}
+    <div class="featured-collection__footer">
+      <a
+        href="{{ selected_collection.url }}"
+        class="featured-collection__view-all-btn featured-collection__view-all-btn--{{ section.settings.view_all_style }}"
+      >
+        <span>View all {{ selected_collection.title }}</span>
+      </a>
+    </div>
+  {%- endif -%}
+</section>
+
+{% schema %}
+{
+  "name": "Featured collection",
+  "tag": "section",
+  "class": "featured-collection",
+  "disabled_on": {
+    "groups": ["header", "footer"]
+  },
+  "settings": [
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "Color scheme",
+      "default": "scheme-1"
+    },
+    {
+      "type": "header",
+      "content": "Section header"
+    },
+    {
+      "type": "inline_richtext",
+      "id": "subheading",
+      "label": "Subheading / Eyebrow",
+      "default": "Curated Selection"
+    },
+    {
+      "type": "inline_richtext",
+      "id": "heading",
+      "label": "Heading",
+      "default": "Featured Collection"
+    },
+    {
+      "type": "select",
+      "id": "heading_size",
+      "label": "Heading size",
+      "options": [
+        { "value": "heading--small", "label": "Small" },
+        { "value": "heading--medium", "label": "Medium" },
+        { "value": "heading--large", "label": "Large" }
+      ],
+      "default": "heading--medium"
+    },
+    {
+      "type": "richtext",
+      "id": "description",
+      "label": "Description",
+      "default": "<p>Discover precision-engineered tech and lifestyle accessories crafted with a glass aesthetic.</p>"
+    },
+    {
+      "type": "select",
+      "id": "text_alignment",
+      "label": "Header alignment",
+      "options": [
+        { "value": "left", "label": "Left" },
+        { "value": "center", "label": "Center" },
+        { "value": "right", "label": "Right" }
+      ],
+      "default": "center"
+    },
+    {
+      "type": "header",
+      "content": "Collection & Layout"
+    },
+    {
+      "type": "collection",
+      "id": "collection",
+      "label": "Collection"
+    },
+    {
+      "type": "range",
+      "id": "products_to_show",
+      "label": "Products to show",
+      "min": 2,
+      "max": 16,
+      "step": 1,
+      "default": 8
+    },
+    {
+      "type": "range",
+      "id": "columns_desktop",
+      "label": "Columns on desktop",
+      "min": 2,
+      "max": 5,
+      "step": 1,
+      "default": 4
+    },
+    {
+      "type": "select",
+      "id": "columns_mobile",
+      "label": "Columns on mobile",
+      "options": [
+        { "value": "1", "label": "1" },
+        { "value": "2", "label": "2" }
+      ],
+      "default": "2"
+    },
+    {
+      "type": "select",
+      "id": "layout_style",
+      "label": "Layout style",
+      "options": [
+        { "value": "grid", "label": "Standard Grid" },
+        { "value": "slider", "label": "Carousel / Slider" }
+      ],
+      "default": "slider"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_view_all",
+      "label": "Show 'View all' button",
+      "default": true
+    },
+    {
+      "type": "select",
+      "id": "view_all_style",
+      "label": "View all button style",
+      "options": [
+        { "value": "primary", "label": "High-contrast solid" },
+        { "value": "secondary", "label": "Translucent glass" },
+        { "value": "outline", "label": "Fine outline" }
+      ],
+      "default": "outline"
+    },
+    {
+      "type": "header",
+      "content": "Slider & Carousel settings"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_loop",
+      "label": "Enable infinite loop (continuous carousel)",
+      "default": false
+    },
+    {
+      "type": "checkbox",
+      "id": "show_arrows",
+      "label": "Show navigation arrows",
+      "default": true
+    },
+    {
+      "type": "select",
+      "id": "arrow_design",
+      "label": "Arrow design",
+      "options": [
+        { "value": "glass", "label": "Frosted glass" },
+        { "value": "solid", "label": "High-contrast solid" },
+        { "value": "minimal", "label": "Minimal outline" },
+        { "value": "square", "label": "Geometric square" }
+      ],
+      "default": "glass"
+    },
+    {
+      "type": "select",
+      "id": "arrow_position",
+      "label": "Arrow position",
+      "options": [
+        { "value": "sides", "label": "Floating on sides" },
+        { "value": "header", "label": "Header (top right)" },
+        { "value": "bottom", "label": "Bottom navigation" }
+      ],
+      "default": "sides"
+    },
+    {
+      "type": "select",
+      "id": "arrow_size",
+      "label": "Arrow size",
+      "options": [
+        { "value": "small", "label": "Small" },
+        { "value": "medium", "label": "Medium" },
+        { "value": "large", "label": "Large" }
+      ],
+      "default": "medium"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_dots",
+      "label": "Show pagination indicators",
+      "default": true
+    },
+    {
+      "type": "select",
+      "id": "dot_style",
+      "label": "Pagination style",
+      "options": [
+        { "value": "dots", "label": "Simple dots" },
+        { "value": "progress", "label": "Active progress bar" }
+      ],
+      "default": "progress"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_autoplay",
+      "label": "Enable autoplay",
+      "default": false
+    },
+    {
+      "type": "range",
+      "id": "autoplay_interval",
+      "label": "Autoplay interval",
+      "min": 3,
+      "max": 10,
+      "step": 1,
+      "unit": "s",
+      "default": 5
+    },
+    {
+      "type": "header",
+      "content": "Product card settings"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_glass_cards",
+      "label": "Enable glassmorphism card style",
+      "default": true
+    },
+    {
+      "type": "select",
+      "id": "card_image_ratio",
+      "label": "Image ratio",
+      "options": [
+        { "value": "portrait", "label": "Portrait (3:4)" },
+        { "value": "square", "label": "Square (1:1)" },
+        { "value": "adapt", "label": "Adapt to image" }
+      ],
+      "default": "portrait"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_vendor",
+      "label": "Show vendor / brand",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_rating",
+      "label": "Show reviews / rating",
+      "default": true
+    },
+    {
+      "type": "select",
+      "id": "quick_view_mode",
+      "label": "Quick view",
+      "options": [
+        {
+          "value": "none",
+          "label": "None"
+        },
+        {
+          "value": "standard",
+          "label": "Standard (Add to cart & quick view for variants)"
+        },
+        {
+          "value": "all",
+          "label": "Quick view modal for all"
+        }
+      ],
+      "default": "standard",
+      "info": "Choose how quick action behaves: None (disabled), Standard (direct Add to cart for single-variant products, Quick view for multi-variant products), or Quick view modal for all."
+    },
+    {
+      "type": "select",
+      "id": "quick_view_position",
+      "label": "Quick view style / position",
+      "options": [
+        {
+          "value": "center",
+          "label": "Center popup modal"
+        },
+        {
+          "value": "left",
+          "label": "Left slide-out drawer"
+        },
+        {
+          "value": "right",
+          "label": "Right slide-out drawer"
+        }
+      ],
+      "default": "center"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_secondary_image",
+      "label": "Show secondary image on hover",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_sale_badge",
+      "label": "Show sale badge",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_stock_badge",
+      "label": "Show sold-out badge",
+      "default": true
+    },
+    {
+      "type": "header",
+      "content": "Section layout & spacing"
+    },
+    {
+      "type": "checkbox",
+      "id": "full_width",
+      "label": "Full width layout",
+      "default": false
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_rounded_corners",
+      "label": "Enable rounded card corners",
+      "default": true
+    },
+    {
+      "type": "range",
+      "id": "corner_radius",
+      "label": "Card corner radius",
+      "min": 0,
+      "max": 32,
+      "step": 2,
+      "unit": "px",
+      "default": 16
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "Top padding",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "default": 48
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "Bottom padding",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "default": 48
+    }
+  ],
+  "presets": [
+    {
+      "name": "Featured collection",
+      "settings": {
+        "subheading": "Curated Selection",
+        "heading": "Featured Collection",
+        "products_to_show": 8,
+        "columns_desktop": 4,
+        "columns_mobile": "2",
+        "layout_style": "slider",
+        "show_arrows": true,
+        "arrow_design": "glass",
+        "arrow_position": "sides",
+        "show_dots": true,
+        "dot_style": "progress",
+        "quick_view_mode": "standard",
+        "quick_view_position": "center",
+        "show_vendor": true,
+        "show_rating": true,
+        "enable_glass_cards": true
+      }
+    }
+  ]
+}
+{% endschema %}

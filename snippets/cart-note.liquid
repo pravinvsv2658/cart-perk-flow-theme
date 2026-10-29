@@ -1,0 +1,48 @@
+{% doc %}
+  Renders the cart order note input interface for Cart Drawer or Cart Page.
+
+  @param {string} [context] - 'drawer' or 'page' (default: 'drawer')
+
+  @example
+  {% render 'cart-note', context: 'drawer' %}
+  {% render 'cart-note', context: 'page' %}
+{% enddoc %}
+
+{%- if settings.cart_show_note -%}
+  {%- assign note_context = context | default: 'drawer' -%}
+
+  {%- if note_context == 'drawer' -%}
+    <details class="cart-drawer__note-details">
+      <summary class="cart-drawer__note-summary">
+        <span class="cart-drawer__note-summary-text">
+          {% render 'icon', icon: 'edit', class: 'cart-drawer__note-svg' %}
+          <span>{{ 'cart.order_note' | t }}</span>
+        </span>
+        <span class="cart-drawer__note-icon" aria-hidden="true">
+          {% render 'icon', icon: 'chevron', class: 'cart-drawer__note-chevron' %}
+        </span>
+      </summary>
+      <div class="cart-drawer__note-content">
+        <textarea
+          name="note"
+          class="cart-drawer__note-textarea"
+          placeholder="{{ 'cart.note_placeholder' | t }}"
+          data-cart-note
+        >{{ cart.note }}</textarea>
+      </div>
+    </details>
+  {%- else -%}
+    <div class="cart-page__note-card">
+      <h3 class="cart-page__note-title">
+        {% render 'icon', icon: 'edit', class: 'cart-page__note-svg', width: 18, height: 18 %}
+        <span>{{ 'cart.order_note' | t }}</span>
+      </h3>
+      <textarea
+        name="note"
+        class="cart-page__note-textarea"
+        placeholder="{{ 'cart.note_placeholder' | t }}"
+        data-cart-page-note
+      >{{ cart.note }}</textarea>
+    </div>
+  {%- endif -%}
+{%- endif -%}

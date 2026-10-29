@@ -1,0 +1,698 @@
+{{ 'main-banner.css' | asset_url | stylesheet_tag }}
+<script src="{{ 'main-banner.js' | asset_url }}" defer="defer"></script>
+
+{%- liquid
+  assign section_id = section.id
+  assign current_scheme = section.settings.color_scheme
+  assign blocks_count = section.blocks.size
+  assign first_slide = section.blocks.first
+-%}
+
+{%- style -%}
+  #MainBanner-{{ section_id }} {
+    --banner-pt: {{ section.settings.padding_top }}px;
+    --banner-pb: {{ section.settings.padding_bottom }}px;
+    --banner-corner-radius: {% if section.settings.enable_rounded_corners %}{{ section.settings.corner_radius }}px{% else %}0px{% endif %};
+    {% if section.settings.custom_min_height > 0 %}
+      --banner-custom-min-height: {{ section.settings.custom_min_height }}px;
+    {% endif %}
+  }
+
+  {%- if section.settings.banner_height == 'adapt' and first_slide.settings.desktop_image != blank -%}
+    #MainBanner-{{ section_id }} .main-banner__slider--adapt {
+      aspect-ratio: {{ first_slide.settings.desktop_image.aspect_ratio }};
+      min-height: auto;
+    }
+    {%- if first_slide.settings.mobile_image != blank -%}
+      @media (max-width: 749px) {
+        #MainBanner-{{ section_id }} .main-banner__slider--adapt {
+          aspect-ratio: {{ first_slide.settings.mobile_image.aspect_ratio }};
+          min-height: auto;
+        }
+      }
+    {%- endif -%}
+  {%- endif -%}
+{%- endstyle -%}
+
+<section
+  id="MainBanner-{{ section_id }}"
+  class="main-banner-section {% if section.settings.full_width %}full-width{% else %}main-banner-section--contained{% endif %} color-{{ current_scheme.id | default: current_scheme }}"
+  data-section-id="{{ section_id }}"
+  data-autoplay="{{ section.settings.enable_autoplay }}"
+  data-autoplay-interval="{{ section.settings.autoplay_interval | times: 1000 }}"
+  data-show-arrows="{{ section.settings.show_arrows }}"
+  data-show-dots="{{ section.settings.show_dots }}"
+  role="region"
+  aria-roledescription="carousel"
+  aria-label="Main Banner"
+>
+  <div class="main-banner__container">
+    <div class="main-banner__slider main-banner__slider--{{ section.settings.banner_height }}" tabindex="0">
+      <div class="main-banner__track" id="BannerTrack-{{ section_id }}">
+        {%- for block in section.blocks -%}
+          {%- liquid
+            assign has_button_1 = false
+            assign has_button_2 = false
+            if block.settings.show_button_1 and block.settings.button_label_1 != blank and block.settings.button_link_1 != blank
+              assign has_button_1 = true
+            endif
+            if block.settings.show_button_2 and block.settings.button_label_2 != blank and block.settings.button_link_2 != blank
+              assign has_button_2 = true
+            endif
+
+            assign has_buttons = false
+            if has_button_1 or has_button_2
+              assign has_buttons = true
+            endif
+          -%}
+
+          <div
+            class="main-banner__slide {% if forloop.first %}is-active{% endif %}"
+            id="Slide-{{ section_id }}-{{ forloop.index0 }}"
+            data-slide-index="{{ forloop.index0 }}"
+            role="group"
+            aria-roledescription="slide"
+            aria-label="Slide {{ forloop.index }} of {{ blocks_count }}"
+            aria-hidden="{% if forloop.first %}false{% else %}true{% endif %}"
+            {{ block.shopify_attributes }}
+            style="
+              --content-max-width: {{ block.settings.content_max_width }}px;
+              --overlay-opacity: {{ block.settings.overlay_opacity | divided_by: 100.0 }};
+              --image-focal-point: {{ block.settings.focal_point }};
+              --text-align-desktop: {{ block.settings.text_alignment }};
+              --text-align-mobile: {{ section.settings.mobile_text_alignment }};
+            "
+          >
+            {%- # Background Media -%}
+            <div class="main-banner__media">
+              {%- if block.settings.desktop_image != blank -%}
+                {%- liquid
+                  assign loading_strategy = 'lazy'
+                  assign fetch_priority = 'auto'
+                  if forloop.first
+                    assign loading_strategy = 'eager'
+                    assign fetch_priority = 'high'
+                  endif
+                -%}
+
+                {%- if block.settings.mobile_image != blank -%}
+                  <picture>
+                    <source
+                      media="(max-width: 749px)"
+                      srcset="{{ block.settings.mobile_image | image_url: width: 600 }} 600w, {{ block.settings.mobile_image | image_url: width: 900 }} 900w, {{ block.settings.mobile_image | image_url: width: 1200 }} 1200w"
+                      sizes="100vw"
+                    >
+                    {{
+                      block.settings.desktop_image
+                      | image_url: width: 3840
+                      | image_tag:
+                        loading: loading_strategy,
+                        fetchpriority: fetch_priority,
+                        class: 'main-banner__img',
+                        widths: '750, 1100, 1500, 1780, 2000, 3000, 3840',
+                        sizes: '100vw',
+                        alt: block.settings.desktop_image.alt | default: block.settings.heading | escape
+                    }}
+                  </picture>
+                {%- else -%}
+                  {{
+                    block.settings.desktop_image
+                    | image_url: width: 3840
+                    | image_tag:
+                      loading: loading_strategy,
+                      fetchpriority: fetch_priority,
+                      class: 'main-banner__img',
+                      widths: '750, 1100, 1500, 1780, 2000, 3000, 3840',
+                      sizes: '100vw',
+                      alt: block.settings.desktop_image.alt | default: block.settings.heading | escape
+                  }}
+                {%- endif -%}
+              {%- else -%}
+                {%- assign placeholder_index = forloop.index | modulo: 2 | plus: 1 -%}
+                {{ 'lifestyle-' | append: placeholder_index | placeholder_svg_tag: 'main-banner__placeholder' }}
+              {%- endif -%}
+
+              <div class="main-banner__overlay main-banner__overlay--{{ block.settings.overlay_gradient }}"></div>
+            </div>
+
+            {%- # Content Area -%}
+            <div class="main-banner__content-wrapper main-banner__content-wrapper--v-{{ block.settings.content_vertical_position }} main-banner__content-wrapper--h-{{ block.settings.content_horizontal_position }} main-banner__content-width--{{ section.settings.desktop_content_width }} main-banner__content-width-mobile--{{ section.settings.mobile_content_width }}">
+              <div class="main-banner__content-box {% if block.settings.enable_glass_panel %}main-banner__content-box--glass{% endif %}">
+                {%- if block.settings.subheading != blank -%}
+                  <div class="main-banner__subheading">
+                    <span class="main-banner__eyebrow-badge">{{ block.settings.subheading }}</span>
+                  </div>
+                {%- endif -%}
+
+                {%- if block.settings.heading != blank -%}
+                  <h2 class="main-banner__heading {{ block.settings.heading_size }}">
+                    {{ block.settings.heading }}
+                  </h2>
+                {%- endif -%}
+
+                {%- if block.settings.description != blank -%}
+                  <div class="main-banner__description">
+                    {{ block.settings.description }}
+                  </div>
+                {%- endif -%}
+
+                {%- if has_buttons -%}
+                  <div class="main-banner__buttons">
+                    {%- if has_button_1 -%}
+                      <a
+                        href="{{ block.settings.button_link_1 }}"
+                        class="main-banner__btn main-banner__btn--{{ block.settings.button_style_1 }}"
+                        {% if block.settings.button_target_blank_1 %}
+                          target="_blank" rel="noopener noreferrer"
+                        {% endif %}
+                        {% unless forloop.first %}tabindex="-1"{% endunless %}
+                      >
+                        <span>{{ block.settings.button_label_1 | escape }}</span>
+                      </a>
+                    {%- endif -%}
+
+                    {%- if has_button_2 -%}
+                      <a
+                        href="{{ block.settings.button_link_2 }}"
+                        class="main-banner__btn main-banner__btn--{{ block.settings.button_style_2 }}"
+                        {% if block.settings.button_target_blank_2 %}
+                          target="_blank" rel="noopener noreferrer"
+                        {% endif %}
+                        {% unless forloop.first %}tabindex="-1"{% endunless %}
+                      >
+                        <span>{{ block.settings.button_label_2 | escape }}</span>
+                      </a>
+                    {%- endif -%}
+                  </div>
+                {%- endif -%}
+              </div>
+            </div>
+
+            {%- # Stretched Whole Slide Link (only when no buttons exist to avoid invalid nested anchors) -%}
+            {%- if block.settings.banner_whole_clickable and block.settings.banner_link != blank -%}
+              {%- unless has_buttons -%}
+                <a
+                  href="{{ block.settings.banner_link }}"
+                  class="main-banner__stretched-link"
+                  aria-label="{{ block.settings.heading | strip_html | default: 'Slide link' | escape }}"
+                  {% unless forloop.first %}tabindex="-1"{% endunless %}
+                ></a>
+              {%- endunless -%}
+            {%- endif -%}
+          </div>
+        {%- endfor -%}
+      </div>
+
+      {%- # Navigation Controls (only rendered when more than 1 slide exists) -%}
+      {%- if blocks_count > 1 -%}
+        {%- if section.settings.show_arrows -%}
+          <div class="main-banner__arrows main-banner__arrows--{{ section.settings.arrow_position }} main-banner__arrows--{{ section.settings.arrow_design }} main-banner__arrows--{{ section.settings.arrow_size }}">
+            <button
+              type="button"
+              class="main-banner__arrow main-banner__arrow--prev"
+              aria-label="Previous slide"
+              data-action="prev"
+            >
+              {% render 'icon', icon: 'arrow-left', width: 20, height: 20 %}
+            </button>
+            <button
+              type="button"
+              class="main-banner__arrow main-banner__arrow--next"
+              aria-label="Next slide"
+              data-action="next"
+            >
+              {% render 'icon', icon: 'arrow-right', width: 20, height: 20 %}
+            </button>
+          </div>
+        {%- endif -%}
+
+        {%- if section.settings.show_dots -%}
+          <div class="main-banner__dots-container main-banner__dots--{{ section.settings.dot_style }}" role="tablist" aria-label="Slide pagination"></div>
+        {%- endif -%}
+      {%- endif -%}
+    </div>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Main banner",
+  "tag": "section",
+  "class": "main-banner",
+  "disabled_on": {
+    "groups": ["header", "footer"]
+  },
+  "max_blocks": 10,
+  "settings": [
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "Color scheme",
+      "default": "scheme-1"
+    },
+    {
+      "type": "header",
+      "content": "Layout and sizing"
+    },
+    {
+      "type": "select",
+      "id": "banner_height",
+      "label": "Banner height",
+      "options": [
+        { "value": "adapt", "label": "Adapt to image" },
+        { "value": "small", "label": "Small" },
+        { "value": "medium", "label": "Medium" },
+        { "value": "large", "label": "Large" },
+        { "value": "fullscreen", "label": "Full screen" }
+      ],
+      "default": "large"
+    },
+    {
+      "type": "range",
+      "id": "custom_min_height",
+      "label": "Custom minimum height",
+      "min": 0,
+      "max": 900,
+      "step": 20,
+      "unit": "px",
+      "default": 0,
+      "info": "Set above 0 to enforce a strict minimum pixel height"
+    },
+    {
+      "type": "checkbox",
+      "id": "full_width",
+      "label": "Full width layout",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_rounded_corners",
+      "label": "Enable rounded banner corners",
+      "default": false
+    },
+    {
+      "type": "range",
+      "id": "corner_radius",
+      "label": "Corner radius",
+      "min": 0,
+      "max": 40,
+      "step": 2,
+      "unit": "px",
+      "default": 16
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "Top padding",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "Bottom padding",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "select",
+      "id": "desktop_content_width",
+      "label": "Desktop content width",
+      "options": [
+        { "value": "narrow", "label": "Narrow" },
+        { "value": "normal", "label": "Normal" },
+        { "value": "wide", "label": "Wide" },
+        { "value": "full", "label": "Full" }
+      ],
+      "default": "normal"
+    },
+    {
+      "type": "select",
+      "id": "mobile_content_width",
+      "label": "Mobile content width",
+      "options": [
+        { "value": "contained", "label": "Contained" },
+        { "value": "full", "label": "Edge to edge" }
+      ],
+      "default": "contained"
+    },
+    {
+      "type": "select",
+      "id": "mobile_text_alignment",
+      "label": "Mobile text alignment",
+      "options": [
+        { "value": "left", "label": "Left" },
+        { "value": "center", "label": "Center" },
+        { "value": "right", "label": "Right" }
+      ],
+      "default": "center"
+    },
+    {
+      "type": "header",
+      "content": "Navigation arrows"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_arrows",
+      "label": "Show navigation arrows",
+      "default": true
+    },
+    {
+      "type": "select",
+      "id": "arrow_design",
+      "label": "Arrow design",
+      "options": [
+        { "value": "glass", "label": "Circular glass" },
+        { "value": "solid", "label": "Circular solid" },
+        { "value": "minimal", "label": "Minimal chevron" },
+        { "value": "square", "label": "Square glass" }
+      ],
+      "default": "glass"
+    },
+    {
+      "type": "select",
+      "id": "arrow_position",
+      "label": "Arrow position",
+      "options": [
+        { "value": "sides", "label": "Sides (center left & right)" },
+        { "value": "bottom_right", "label": "Bottom right" },
+        { "value": "bottom_left", "label": "Bottom left" },
+        { "value": "bottom_center", "label": "Bottom center" }
+      ],
+      "default": "sides"
+    },
+    {
+      "type": "select",
+      "id": "arrow_size",
+      "label": "Arrow size",
+      "options": [
+        { "value": "small", "label": "Small" },
+        { "value": "medium", "label": "Medium" },
+        { "value": "large", "label": "Large" }
+      ],
+      "default": "medium"
+    },
+    {
+      "type": "header",
+      "content": "Slider controls & autoplay"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_autoplay",
+      "label": "Enable autoplay",
+      "default": false
+    },
+    {
+      "type": "range",
+      "id": "autoplay_interval",
+      "label": "Autoplay interval",
+      "min": 3,
+      "max": 10,
+      "step": 1,
+      "unit": "s",
+      "default": 5
+    },
+    {
+      "type": "checkbox",
+      "id": "show_dots",
+      "label": "Show pagination dots",
+      "default": true
+    },
+    {
+      "type": "select",
+      "id": "dot_style",
+      "label": "Pagination dot style",
+      "options": [
+        { "value": "dots", "label": "Simple dots" },
+        { "value": "progress", "label": "Active progress bar" }
+      ],
+      "default": "progress"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "banner",
+      "name": "Banner slide",
+      "settings": [
+        {
+          "type": "header",
+          "content": "Images"
+        },
+        {
+          "type": "image_picker",
+          "id": "desktop_image",
+          "label": "Desktop banner image"
+        },
+        {
+          "type": "image_picker",
+          "id": "mobile_image",
+          "label": "Mobile banner image (optional)"
+        },
+        {
+          "type": "select",
+          "id": "focal_point",
+          "label": "Image focal point",
+          "options": [
+            { "value": "center center", "label": "Center" },
+            { "value": "center top", "label": "Top" },
+            { "value": "center bottom", "label": "Bottom" },
+            { "value": "left center", "label": "Left" },
+            { "value": "right center", "label": "Right" }
+          ],
+          "default": "center center"
+        },
+        {
+          "type": "range",
+          "id": "overlay_opacity",
+          "label": "Overlay opacity",
+          "min": 0,
+          "max": 90,
+          "step": 5,
+          "unit": "%",
+          "default": 25
+        },
+        {
+          "type": "select",
+          "id": "overlay_gradient",
+          "label": "Overlay gradient",
+          "options": [
+            { "value": "none", "label": "Uniform tint" },
+            { "value": "bottom-to-top", "label": "Bottom to top" },
+            { "value": "top-to-bottom", "label": "Top to bottom" },
+            { "value": "radial", "label": "Radial spotlight" }
+          ],
+          "default": "bottom-to-top"
+        },
+        {
+          "type": "header",
+          "content": "Content & Glassmorphism"
+        },
+        {
+          "type": "checkbox",
+          "id": "enable_glass_panel",
+          "label": "Enable glassmorphism card",
+          "default": true
+        },
+        {
+          "type": "inline_richtext",
+          "id": "subheading",
+          "label": "Subheading / Eyebrow",
+          "default": "New Season Collection"
+        },
+        {
+          "type": "inline_richtext",
+          "id": "heading",
+          "label": "Heading",
+          "default": "Refined Glass & Metal Essentials"
+        },
+        {
+          "type": "select",
+          "id": "heading_size",
+          "label": "Heading size",
+          "options": [
+            { "value": "heading--small", "label": "Small" },
+            { "value": "heading--medium", "label": "Medium" },
+            { "value": "heading--large", "label": "Large" },
+            { "value": "heading--xlarge", "label": "Extra large" }
+          ],
+          "default": "heading--large"
+        },
+        {
+          "type": "richtext",
+          "id": "description",
+          "label": "Description",
+          "default": "<p>Engineered for high performance with a tactile glass aesthetic and precision finish.</p>"
+        },
+        {
+          "type": "select",
+          "id": "text_alignment",
+          "label": "Text alignment",
+          "options": [
+            { "value": "left", "label": "Left" },
+            { "value": "center", "label": "Center" },
+            { "value": "right", "label": "Right" }
+          ],
+          "default": "left"
+        },
+        {
+          "type": "select",
+          "id": "content_vertical_position",
+          "label": "Content vertical position",
+          "options": [
+            { "value": "top", "label": "Top" },
+            { "value": "center", "label": "Center" },
+            { "value": "bottom", "label": "Bottom" }
+          ],
+          "default": "center"
+        },
+        {
+          "type": "select",
+          "id": "content_horizontal_position",
+          "label": "Content horizontal position",
+          "options": [
+            { "value": "left", "label": "Left" },
+            { "value": "center", "label": "Center" },
+            { "value": "right", "label": "Right" }
+          ],
+          "default": "left"
+        },
+        {
+          "type": "range",
+          "id": "content_max_width",
+          "label": "Content maximum width",
+          "min": 400,
+          "max": 1000,
+          "step": 20,
+          "unit": "px",
+          "default": 640
+        },
+        {
+          "type": "header",
+          "content": "Primary button"
+        },
+        {
+          "type": "checkbox",
+          "id": "show_button_1",
+          "label": "Show primary button",
+          "default": true
+        },
+        {
+          "type": "text",
+          "id": "button_label_1",
+          "label": "Primary button text",
+          "default": "Explore Collection"
+        },
+        {
+          "type": "url",
+          "id": "button_link_1",
+          "label": "Primary button link"
+        },
+        {
+          "type": "select",
+          "id": "button_style_1",
+          "label": "Primary button style",
+          "options": [
+            { "value": "primary", "label": "High-contrast solid" },
+            { "value": "secondary", "label": "Translucent glass" },
+            { "value": "outline", "label": "Fine outline" }
+          ],
+          "default": "primary"
+        },
+        {
+          "type": "checkbox",
+          "id": "button_target_blank_1",
+          "label": "Open in new window",
+          "default": false
+        },
+        {
+          "type": "header",
+          "content": "Secondary button"
+        },
+        {
+          "type": "checkbox",
+          "id": "show_button_2",
+          "label": "Show secondary button",
+          "default": true
+        },
+        {
+          "type": "text",
+          "id": "button_label_2",
+          "label": "Secondary button text",
+          "default": "View Catalog"
+        },
+        {
+          "type": "url",
+          "id": "button_link_2",
+          "label": "Secondary button link"
+        },
+        {
+          "type": "select",
+          "id": "button_style_2",
+          "label": "Secondary button style",
+          "options": [
+            { "value": "primary", "label": "High-contrast solid" },
+            { "value": "secondary", "label": "Translucent glass" },
+            { "value": "outline", "label": "Fine outline" }
+          ],
+          "default": "outline"
+        },
+        {
+          "type": "checkbox",
+          "id": "button_target_blank_2",
+          "label": "Open in new window",
+          "default": false
+        },
+        {
+          "type": "header",
+          "content": "Slide click behavior"
+        },
+        {
+          "type": "checkbox",
+          "id": "banner_whole_clickable",
+          "label": "Make entire slide clickable",
+          "info": "Applied only when no buttons are displayed to preserve accessible markup",
+          "default": false
+        },
+        {
+          "type": "url",
+          "id": "banner_link",
+          "label": "Slide link"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Main banner",
+      "blocks": [
+        {
+          "type": "banner",
+          "settings": {
+            "subheading": "Signature Series",
+            "heading": "Refined Glass & Metal Essentials",
+            "description": "<p>Engineered for high performance with a tactile glass aesthetic and precision finish.</p>",
+            "button_label_1": "Shop Signature",
+            "button_label_2": "Explore Details"
+          }
+        },
+        {
+          "type": "banner",
+          "settings": {
+            "subheading": "New Release",
+            "heading": "Crafted For Modern Workspaces",
+            "description": "<p>Translucent surfaces and architectural minimalism designed to elevate your daily workflow.</p>",
+            "button_label_1": "View Workspace",
+            "button_label_2": "Our Craft"
+          }
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,95 @@
+{% doc %}
+  Renders the cart discount code input form and applied discount status for Cart Drawer or Cart Page.
+
+  @param {string} [context] - 'drawer' or 'page' (default: 'drawer')
+
+  @example
+  {% render 'cart-discount', context: 'drawer' %}
+  {% render 'cart-discount', context: 'page' %}
+{% enddoc %}
+
+{%- if settings.cart_show_discount_field -%}
+  {%- assign discount_context = context | default: 'drawer' -%}
+
+  {%- if discount_context == 'drawer' -%}
+    <div class="cart-drawer__discount-container" data-discount-container>
+      <details class="cart-drawer__discount-details" data-discount-details>
+        <summary class="cart-drawer__discount-summary">
+          <span class="cart-drawer__discount-summary-text">
+            {% render 'icon', icon: 'tag', class: 'cart-drawer__discount-svg', width: 16, height: 16 %}
+            <span>{{ 'cart.have_discount' | t }}</span>
+          </span>
+          <span class="cart-drawer__discount-icon" aria-hidden="true">
+            {% render 'icon', icon: 'chevron', class: 'cart-drawer__discount-chevron' %}
+          </span>
+        </summary>
+        <div class="cart-drawer__discount-content">
+          <div class="cart-drawer__discount-form">
+            <input
+              type="text"
+              class="cart-drawer__discount-input"
+              placeholder="{{ 'cart.discount_code' | t }}"
+              aria-label="{{ 'cart.discount_code' | t }}"
+              data-discount-input
+              autocomplete="off"
+              autocapitalize="characters"
+            >
+            <button
+              type="button"
+              class="cart-drawer__discount-btn"
+              data-discount-apply
+            >
+              {{ 'cart.apply_discount' | t }}
+            </button>
+          </div>
+          <div class="cart-drawer__discount-message hidden" data-discount-message></div>
+        </div>
+      </details>
+
+      <div class="cart-drawer__discount-applied hidden" data-discount-applied>
+        <div class="cart-drawer__discount-badge">
+          {% render 'icon', icon: 'tag', width: 14, height: 14 %}
+          <span class="cart-drawer__discount-code" data-discount-code-text></span>
+          <button type="button" class="cart-drawer__discount-remove" data-discount-remove aria-label="{{ 'cart.remove_discount' | t }}">
+            {% render 'icon', icon: 'close', width: 12, height: 12 %}
+          </button>
+        </div>
+      </div>
+    </div>
+  {%- else -%}
+    <div class="cart-page__discount-wrapper" data-discount-container>
+      <div class="cart-page__discount-form">
+        <div class="cart-page__discount-input-wrapper">
+          {% render 'icon', icon: 'tag', class: 'cart-page__discount-input-icon', width: 16, height: 16 %}
+          <input
+            type="text"
+            class="cart-page__discount-input"
+            placeholder="{{ 'cart.discount_code' | t }}"
+            aria-label="{{ 'cart.discount_code' | t }}"
+            data-discount-input
+            autocomplete="off"
+            autocapitalize="characters"
+          >
+        </div>
+        <button
+          type="button"
+          class="cart-page__discount-btn"
+          data-discount-apply
+        >
+          {{ 'cart.apply_discount' | t }}
+        </button>
+      </div>
+      <div class="cart-page__discount-message hidden" data-discount-message></div>
+
+      <div class="cart-page__discount-applied hidden" data-discount-applied>
+        <div class="cart-page__discount-badge">
+          {% render 'icon', icon: 'tag', width: 14, height: 14 %}
+          <span class="cart-page__discount-code" data-discount-code-text></span>
+          <button type="button" class="cart-page__discount-remove" data-discount-remove aria-label="{{ 'cart.remove_discount' | t }}">
+            {% render 'icon', icon: 'close', width: 12, height: 12 %}
+          </button>
+        </div>
+      </div>
+    </div>
+  {%- endif -%}
+{%- endif -%}
