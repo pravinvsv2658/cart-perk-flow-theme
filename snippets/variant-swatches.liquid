@@ -1,204 +1,199 @@
 {% doc %}
-  Renders variant swatches, rectangular option pills, or dropdown select menus for a product option.
-  Only options with the name "Color" (or "Colour") render circular/image color swatches with tooltips.
-  All other options (Size, Material, Style, etc.) render rectangular buttons with border radius showing the variant value name.
-  Custom color hex codes are loaded from the theme setting `settings.custom_color_swatches` with fallback to theme default colors.
+  Renders standardized variant swatches for a product option or all product options.
+  Follows the centralized design system across Product Cards, Quick View Modal/Drawer, and Product Pages.
+  Only options named "Color" or "Colour" render circular/image swatches with tooltips.
+  All other options (Size, Material, Style, etc.) render rounded pill buttons.
 
-  @param {product} product - The product object
-  @param {object} option - The product option object from product.options_with_values
-  @param {number} [option_index] - 0-based option index
-  @param {string} [variant_style] - 'swatches' or 'dropdown' (defaults to settings.variant_style)
+  @param {product} product - The Shopify product object
+  @param {object} [option] - Specific product option object. If omitted, iterates over all product.options_with_values.
+  @param {number} [option_index] - 0-based index of option if single option passed
+  @param {string} [context] - Display context: 'card', 'product', or 'quick_view' (defaults to 'default')
   @param {string} [selected_value] - Current selected value for this option
   @param {string} [section_id] - Section identifier for unique element IDs
 
   @example
-  {% for option in product.options_with_values %}
-    {% render 'variant-swatches', product: product, option: option, option_index: forloop.index0, section_id: section.id %}
-  {% endfor %}
+  {% render 'variant-swatches', product: product, context: 'card' %}
+  {% render 'variant-swatches', product: product, option: option, option_index: forloop.index0, context: 'product' %}
 {% enddoc %}
 
 {%- liquid
-  assign current_style = variant_style | default: settings.variant_style | default: 'swatches'
-  assign opt_index = option_index | default: 0
-  assign current_selected = selected_value | default: option.selected_value | default: option.values.first
+  assign current_variant = product.selected_or_first_available_variant | default: product.variants.first
+  assign is_card_context = false
+  if context == 'card'
+    assign is_card_context = true
+  endif
 
-  assign downcase_name = option.name | downcase | strip
-  assign is_color = false
-  if downcase_name == 'color' or downcase_name == 'colour' or downcase_name == 'colors' or downcase_name == 'colours' or downcase_name contains 'color' or downcase_name contains 'colour'
-    assign is_color = true
+  if option != blank
+    assign options_to_render = product.options_with_values | where: 'name', option.name
+  else
+    assign options_to_render = product.options_with_values
   endif
 -%}
 
-<div
-  class="variant-swatches variant-swatches--{{ current_style }}{% if is_color %} variant-swatches--color{% else %} variant-swatches--pill{% endif %}"
-  data-option-index="{{ opt_index }}"
-  data-option-name="{{ option.name | escape }}"
->
-  <div class="variant-swatches__header">
-    <span class="variant-swatches__label">{{ option.name }}:</span>
-    <span class="variant-swatches__selected-value" data-selected-value>{{ current_selected }}</span>
-  </div>
+{%- for opt in options_to_render -%}
+  {%- liquid
+    assign opt_name_lower = opt.name | downcase | strip
+    assign is_color = false
+    if opt_name_lower == 'color' or opt_name_lower == 'colour' or opt_name_lower contains 'color' or opt_name_lower contains 'colour'
+      assign is_color = true
+    endif
 
-  {%- if current_style == 'dropdown' -%}
-    <div class="variant-select__wrapper">
-      <select
-        id="Option-{{ section_id | default: 'global' }}-{{ opt_index }}"
-        name="options[{{ option.name | escape }}]"
-        class="variant-select"
-        data-option-index="{{ opt_index }}"
-        aria-label="{{ option.name | escape }}"
-      >
-        {%- for value in option.values -%}
-          <option value="{{ value | escape }}"{% if value == current_selected %} selected="selected"{% endif %}>
-            {{ value }}
-          </option>
-        {%- endfor -%}
-      </select>
-      <span class="variant-select__icon" aria-hidden="true">
-        {% render 'icon', icon: 'chevron-down', width: 16, height: 16 %}
+    assign opt_idx = forloop.index0
+    if option != blank and option_index != blank
+      assign opt_idx = option_index
+    endif
+
+    assign opt_selected = selected_value | default: current_variant.options[opt_idx] | default: opt.selected_value | default: opt.values.first
+
+    # Skip rendering options with only 1 single value when in card context
+    if is_card_context and opt.values.size <= 1
+      continue
+    endif
+  -%}
+
+  <div
+    class="swatch-group{% if is_color %} swatch-group--color{% else %} swatch-group--pill{% endif %}{% if is_card_context %} swatch-group--card{% endif %}"
+    id="SwatchGroup-{{ section_id | default: 'global' }}-{{ opt.position }}"
+    data-option-group
+    data-section-id="{{ section_id | default: 'global' }}"
+    data-option-position="{{ opt.position }}"
+    data-option-index="{{ opt_idx }}"
+    data-option-name="{{ opt.name | escape }}"
+  >
+    <div class="swatch-group__header">
+      <span class="swatch-group__label">{{ opt.name }}:</span>
+      <span class="swatch-group__selected" data-option-selected-label data-selected-value>
+        {{- opt_selected | escape -}}
       </span>
     </div>
-  {%- else -%}
-    <div class="variant-swatches__values" role="radiogroup" aria-label="{{ option.name | escape }}">
-      {%- for value in option.values -%}
+
+    <div
+      class="swatch-group__values{% if is_color %} swatch-group__values--color{% else %} swatch-group__values--pill{% endif %}"
+      role="radiogroup"
+      aria-label="{{ opt.name | escape }} options for {{ product.title | escape }}"
+    >
+      {%- for value in opt.values -%}
         {%- liquid
+          assign matched_variant = null
+          for v in product.variants
+            if opt.position == 1 and v.option1 == value
+              assign matched_variant = v
+              if v.featured_image != blank
+                break
+              endif
+            elsif opt.position == 2 and v.option2 == value
+              assign matched_variant = v
+              if v.featured_image != blank
+                break
+              endif
+            elsif opt.position == 3 and v.option3 == value
+              assign matched_variant = v
+              if v.featured_image != blank
+                break
+              endif
+            endif
+          endfor
+
+          if matched_variant == null
+            assign matched_variant = current_variant
+          endif
+
           assign is_active = false
-          if value == current_selected
+          if value == opt_selected
             assign is_active = true
           endif
 
-          if is_color
-            assign clean_val = value | downcase | strip
-            assign swatch_color = clean_val
-
-            if settings.custom_color_swatches != blank
-              assign custom_lines = settings.custom_color_swatches | newline_to_br | split: '<br />'
-              for line in custom_lines
-                assign line_clean = line | strip
-                if line_clean contains ':'
-                  assign parts = line_clean | split: ':'
-                  assign rule_key = parts[0] | downcase | strip
-                  assign rule_val = parts[1] | strip
-                  if rule_key == clean_val
-                    assign swatch_color = rule_val
-                    break
-                  endif
-                endif
-              endfor
-            endif
-
-            if swatch_color == clean_val
-              case clean_val
-                when 'white'
-                  assign swatch_color = '#ffffff'
-                when 'black'
-                  assign swatch_color = '#000000'
-                when 'red'
-                  assign swatch_color = '#ef4444'
-                when 'green'
-                  assign swatch_color = '#22c55e'
-                when 'blue'
-                  assign swatch_color = '#3b82f6'
-                when 'yellow'
-                  assign swatch_color = '#eab308'
-                when 'orange'
-                  assign swatch_color = '#f97316'
-                when 'purple'
-                  assign swatch_color = '#a855f7'
-                when 'pink'
-                  assign swatch_color = '#ec4899'
-                when 'gray', 'grey'
-                  assign swatch_color = '#6b7280'
-                when 'navy'
-                  assign swatch_color = '#1e3a8a'
-                when 'brown'
-                  assign swatch_color = '#78350f'
-                when 'beige'
-                  assign swatch_color = '#f5f5dc'
-                when 'gold'
-                  assign swatch_color = '#d97706'
-                when 'silver'
-                  assign swatch_color = '#cbd5e1'
-                when 'charcoal'
-                  assign swatch_color = '#334155'
-                when 'teal'
-                  assign swatch_color = '#0d9488'
-                when 'olive'
-                  assign swatch_color = '#65a30d'
-                when 'maroon'
-                  assign swatch_color = '#881337'
-                when 'cream'
-                  assign swatch_color = '#fef3c7'
-                when 'coral'
-                  assign swatch_color = '#f43f5e'
-                when 'lavender'
-                  assign swatch_color = '#e9d5ff'
-                when 'amber'
-                  assign swatch_color = '#d97706'
-                when 'slate'
-                  assign swatch_color = '#64748b'
-                when 'khaki'
-                  assign swatch_color = '#c3b091'
-                when 'sand'
-                  assign swatch_color = '#e2d4b7'
-              endcase
-            endif
-
-            assign variant_image = null
-            for variant in product.variants
-              if variant.options[opt_index] == value and variant.featured_image != blank
-                assign variant_image = variant.featured_image
-                break
-              endif
-            endfor
+          assign variant_img_url = ''
+          if matched_variant.featured_image != blank
+            assign variant_img_url = matched_variant.featured_image | image_url: width: 800
+          elsif matched_variant.featured_media != blank
+            assign variant_img_url = matched_variant.featured_media | image_url: width: 800
           endif
+
+          assign value_handle = value | handleize
+          assign swatch_hex = null
+          case value_handle
+            when 'white'
+              assign swatch_hex = '#ffffff'
+            when 'black'
+              assign swatch_hex = '#0f172a'
+            when 'red'
+              assign swatch_hex = '#ef4444'
+            when 'green'
+              assign swatch_hex = '#22c55e'
+            when 'blue'
+              assign swatch_hex = '#3b82f6'
+            when 'yellow'
+              assign swatch_hex = '#eab308'
+            when 'orange'
+              assign swatch_hex = '#f97316'
+            when 'purple'
+              assign swatch_hex = '#a855f7'
+            when 'pink'
+              assign swatch_hex = '#ec4899'
+            when 'gray', 'grey'
+              assign swatch_hex = '#6b7280'
+            when 'navy'
+              assign swatch_hex = '#1e3a8a'
+            when 'ice'
+              assign swatch_hex = '#a5f3fc'
+            when 'dawn'
+              assign swatch_hex = '#fed7aa'
+            when 'powder'
+              assign swatch_hex = '#e0f2fe'
+            when 'electric'
+              assign swatch_hex = '#38bdf8'
+            when 'sunset'
+              assign swatch_hex = '#fb923c'
+            when 'steel'
+              assign swatch_hex = '#94a3b8'
+            when 'china-sand', 'sand'
+              assign swatch_hex = '#e2d4b7'
+            else
+              assign swatch_hex = value_handle
+          endcase
         -%}
 
         {%- if is_color -%}
-          {%- if variant_image != blank -%}
-            <button
-              type="button"
-              class="variant-swatch variant-swatch--image{% if is_active %} is-active{% endif %}"
-              data-option-index="{{ opt_index }}"
-              data-option-value="{{ value | escape }}"
-              style="background-image: url('{{ variant_image | image_url: width: 120, height: 120 }}');"
-              title="{{ value | escape }}"
-              aria-label="{{ value | escape }}"
-              role="radio"
-              aria-checked="{% if is_active %}true{% else %}false{% endif %}"
-            >
-              <span class="variant-swatch__tooltip">{{ value }}</span>
-            </button>
-          {%- else -%}
-            <button
-              type="button"
-              class="variant-swatch variant-swatch--color{% if is_active %} is-active{% endif %}"
-              data-option-index="{{ opt_index }}"
-              data-option-value="{{ value | escape }}"
-              style="background-color: {{ swatch_color }};"
-              title="{{ value | escape }}"
-              aria-label="{{ value | escape }}"
-              role="radio"
-              aria-checked="{% if is_active %}true{% else %}false{% endif %}"
-            >
-              <span class="variant-swatch__tooltip">{{ value }}</span>
-            </button>
-          {%- endif -%}
-        {%- else -%}
-          {%- # Rectangular option button with border-radius for other options (Size, Material, etc.) -%}
           <button
             type="button"
-            class="variant-pill{% if is_active %} is-active{% endif %}"
-            data-option-index="{{ opt_index }}"
+            class="swatch swatch--color{% if is_active %} is-active{% endif %}{% unless matched_variant.available %} is-sold-out{% endunless %}"
+            data-swatch-btn
+            data-option-position="{{ opt.position }}"
+            data-option-index="{{ opt_idx }}"
             data-option-value="{{ value | escape }}"
-            aria-label="{{ value | escape }}"
+            data-swatch-image="{{ variant_img_url }}"
+            style="--swatch-color: {{ swatch_hex }};"
+            aria-label="{{ value | escape }}{% unless matched_variant.available %} (Sold out){% endunless %}"
             role="radio"
             aria-checked="{% if is_active %}true{% else %}false{% endif %}"
+            title="{{ value | escape }}"
           >
-            {{ value }}
+            <span
+              class="swatch__inner swatch__inner--color"
+              style="--swatch-color: {{ swatch_hex }};"
+              data-color-name="{{ value_handle }}"
+            ></span>
+            <span class="swatch__tooltip">{{ value }}</span>
+          </button>
+        {%- else -%}
+          <button
+            type="button"
+            class="swatch swatch--pill{% if is_active %} is-active{% endif %}{% unless matched_variant.available %} is-sold-out{% endunless %}"
+            data-swatch-btn
+            data-option-position="{{ opt.position }}"
+            data-option-index="{{ opt_idx }}"
+            data-option-value="{{ value | escape }}"
+            data-swatch-image="{{ variant_img_url }}"
+            aria-label="{{ value | escape }}{% unless matched_variant.available %} (Sold out){% endunless %}"
+            role="radio"
+            aria-checked="{% if is_active %}true{% else %}false{% endif %}"
+            title="{{ value | escape }}"
+          >
+            <span class="swatch__text">{{ value }}</span>
           </button>
         {%- endif -%}
       {%- endfor -%}
     </div>
-  {%- endif -%}
-</div>
+  </div>
+{%- endfor -%}

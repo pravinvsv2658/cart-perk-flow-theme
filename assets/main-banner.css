@@ -520,6 +520,9 @@
   width: 3.75rem;
   height: 3.75rem;
 }
+.main-banner__arrow:hover svg {
+  color: #0f172a;
+}
 
 /* Arrow designs */
 .main-banner__arrows--glass .main-banner__arrow {

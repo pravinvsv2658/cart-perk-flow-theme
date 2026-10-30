@@ -11,12 +11,71 @@
   "type": "header",
   "name": "t:general.header",
   "sections": {
+    "announcement-bar": {
+      "type": "announcement-bar",
+      "blocks": {
+        "announcement_1": {
+          "type": "announcement",
+          "settings": {
+            "text": "✨ Free worldwide shipping on all orders over $75",
+            "link": "/collections/all",
+            "badge_text": "FREE SHIPPING",
+            "icon": "shipping"
+          }
+        },
+        "announcement_2": {
+          "type": "announcement",
+          "settings": {
+            "text": "New season arrivals are here — Explore the collection",
+            "link": "shopify://collections/new-arrivals",
+            "badge_text": "NEW",
+            "icon": "sparkle"
+          }
+        }
+      },
+      "block_order": [
+        "announcement_1",
+        "announcement_2"
+      ],
+      "settings": {
+        "color_scheme": "scheme-2",
+        "custom_bg_color": "",
+        "custom_text_color": "",
+        "text_alignment": "center",
+        "font_size": "small",
+        "padding_vertical": 10,
+        "enable_autoplay": true,
+        "autoplay_delay": 5,
+        "show_arrows": true,
+        "enable_marquee": false,
+        "show_close_button": false
+      }
+    },
     "header": {
       "type": "header",
-      "settings": {}
+      "settings": {
+        "logo_width": 120,
+        "logo_position": "top",
+        "enable_sticky_header": true,
+        "sticky_header_type": "always",
+        "enable_transparent_header": false,
+        "transparent_home_only": true,
+        "transparent_text_color": "#ffffff",
+        "transparent_divider": true,
+        "menu": "main-menu",
+        "enable_search": true,
+        "search_type": "predictive",
+        "search_layout": "current",
+        "search_products_layout": "grid",
+        "search_show_image": true,
+        "search_show_vendor": true,
+        "search_enable_add_to_cart": true,
+        "search_recommended_collection": ""
+      }
     }
   },
   "order": [
+    "announcement-bar",
     "header"
-  ],
+  ]
 }

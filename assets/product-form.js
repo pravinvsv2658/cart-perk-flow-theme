@@ -51,6 +51,7 @@
           if (submitBtn) {
             submitBtn.setAttribute('aria-disabled', 'true');
             submitBtn.disabled = true;
+            submitBtn.classList.remove('is-added');
             submitBtn.classList.add('is-loading');
             if (btnText) btnText.textContent = 'Adding...';
           }
@@ -108,8 +109,12 @@
               })
             );
 
+            if (submitBtn) {
+              submitBtn.classList.remove('is-loading');
+              submitBtn.classList.add('is-added');
+            }
             if (btnText) {
-              btnText.textContent = 'Added! ✓';
+              btnText.textContent = 'Added! ';
             }
 
             setTimeout(function () {
@@ -117,7 +122,7 @@
               if (submitBtn) {
                 submitBtn.removeAttribute('aria-disabled');
                 submitBtn.disabled = false;
-                submitBtn.classList.remove('is-loading');
+                submitBtn.classList.remove('is-added');
               }
             }, 1600);
           } catch (error) {
@@ -129,6 +134,7 @@
                 submitBtn.removeAttribute('aria-disabled');
                 submitBtn.disabled = false;
                 submitBtn.classList.remove('is-loading');
+                submitBtn.classList.remove('is-added');
               }
             } else {
               if (btnText) btnText.textContent = 'Error';
@@ -139,6 +145,7 @@
                   submitBtn.removeAttribute('aria-disabled');
                   submitBtn.disabled = false;
                   submitBtn.classList.remove('is-loading');
+                  submitBtn.classList.remove('is-added');
                 }
               }, 1800);
             }
@@ -188,6 +195,7 @@
     if (submitBtn) {
       submitBtn.setAttribute('aria-disabled', 'true');
       submitBtn.disabled = true;
+      submitBtn.classList.remove('is-added');
       submitBtn.classList.add('is-loading');
       if (btnText) btnText.textContent = 'Adding...';
     }
@@ -242,14 +250,18 @@
         })
       );
 
-      if (btnText) btnText.textContent = 'Added! ✓';
+      if (submitBtn) {
+        submitBtn.classList.remove('is-loading');
+        submitBtn.classList.add('is-added');
+      }
+      if (btnText) btnText.textContent = 'Added!';
 
       setTimeout(function () {
         if (btnText) btnText.textContent = originalText;
         if (submitBtn) {
           submitBtn.removeAttribute('aria-disabled');
           submitBtn.disabled = false;
-          submitBtn.classList.remove('is-loading');
+          submitBtn.classList.remove('is-added');
         }
       }, 1600);
     } catch (err) {
@@ -261,6 +273,7 @@
           submitBtn.removeAttribute('aria-disabled');
           submitBtn.disabled = false;
           submitBtn.classList.remove('is-loading');
+          submitBtn.classList.remove('is-added');
         }
       } else {
         if (btnText) btnText.textContent = 'Error';
@@ -270,6 +283,7 @@
             submitBtn.removeAttribute('aria-disabled');
             submitBtn.disabled = false;
             submitBtn.classList.remove('is-loading');
+            submitBtn.classList.remove('is-added');
           }
         }, 1800);
       }

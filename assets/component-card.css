@@ -12,7 +12,11 @@
   width: 100%;
   border-radius: var(--card-corner-radius, 16px);
   background: var(--color-background, #ffffff);
-  border: 1px solid rgba(var(--color-foreground-rgb, 15, 23, 42), var(--card-border-opacity, 0.12));
+  border: 1px solid
+    rgba(
+      var(--color-foreground-rgb, 15, 23, 42),
+      var(--card-border-opacity, 0.12)
+    );
   box-sizing: border-box;
   overflow: hidden;
   transition:
@@ -26,7 +30,11 @@
   background: rgba(var(--color-background-rgb, 255, 255, 255), 0.62);
   backdrop-filter: blur(16px) saturate(175%);
   -webkit-backdrop-filter: blur(16px) saturate(175%);
-  border: 1px solid rgba(var(--color-foreground-rgb, 15, 23, 42), var(--card-border-opacity, 0.14));
+  border: 1px solid
+    rgba(
+      var(--color-foreground-rgb, 15, 23, 42),
+      var(--card-border-opacity, 0.14)
+    );
   box-shadow:
     0 10px 30px -5px rgba(0, 0, 0, var(--card-shadow-opacity, 0.08)),
     0 0 0 1px rgba(255, 255, 255, 0.25) inset;
@@ -41,7 +49,11 @@
 /* Contained Card Style */
 .product-card--card {
   background: var(--color-background, #ffffff);
-  border: 1px solid rgba(var(--color-foreground-rgb, 15, 23, 42), var(--card-border-opacity, 0.12));
+  border: 1px solid
+    rgba(
+      var(--color-foreground-rgb, 15, 23, 42),
+      var(--card-border-opacity, 0.12)
+    );
   box-shadow: 0 4px 14px rgba(0, 0, 0, var(--card-shadow-opacity, 0.06));
 }
 
@@ -212,9 +224,10 @@
 }
 
 .product-card__btn {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
+  gap: 0.45rem;
   width: 100%;
   min-height: 2.75rem;
   padding: 0.5rem 1rem;
@@ -239,7 +252,7 @@
 
 .product-card__btn--add:hover {
   opacity: 0.95;
-  transform: scale(1.02);
+  transform: translateY(-2px) scale(1.01);
   border-color: rgba(0, 0, 0, 0.45);
   box-shadow: 0 6px 18px rgba(0, 0, 0, 0.24);
 }
@@ -257,6 +270,25 @@
   background: #ffffff;
   border-color: rgba(0, 0, 0, 0.5);
   color: #0f172a;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
+}
+
+.product-card__btn--quick-view {
+  background: rgba(255, 255, 255, 0.94);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  color: #0f172a;
+  border: 1px solid rgba(0, 0, 0, 0.25);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+}
+
+.product-card__btn--quick-view:hover {
+  background: #ffffff;
+  border-color: rgba(0, 0, 0, 0.5);
+  color: #0f172a;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.2);
 }
 
 .product-card__btn--disabled {
@@ -269,9 +301,302 @@
 }
 
 .product-card__btn-icon {
-  margin-left: 0.35rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
   font-weight: 700;
   font-size: 1.1rem;
+  flex-shrink: 0;
+}
+
+.product-card__btn-icon svg {
+  display: block;
+  width: 1.125rem;
+  height: 1.125rem;
+}
+
+.product-card__btn-icon--eye svg {
+  stroke-width: 1.8;
+}
+
+.product-card__btn-icon--cart svg {
+  stroke-width: 1.5;
+}
+
+/* Accessibility Helper */
+.visually-hidden {
+  position: absolute !important;
+  overflow: hidden;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  border: 0;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* Loader / Spinner for button clicks (replaces rotating bag icon with dedicated spinner) */
+.product-card__btn-loader,
+.product-card__btn-check {
+  display: none;
+  line-height: 1;
+}
+
+/* While loading: hide static icon and show rotating spinner loader */
+.product-card__btn.is-loading .product-card__btn-icon svg:not(.icon-spinner),
+.product-card__btn.is-loading .product-card__btn-icon-symbol {
+  display: none !important;
+}
+
+.product-card__btn.is-loading .product-card__btn-loader {
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+}
+
+.product-card__btn-loader .icon-spinner {
+  display: block !important;
+  animation: cardBtnSpin 0.75s linear infinite;
+}
+
+/* While added (success): hide static icon & loader, show checkmark */
+.product-card__btn.is-added .product-card__btn-icon svg:not(.icon-check),
+.product-card__btn.is-added .product-card__btn-loader,
+.product-card__btn.is-added .product-card__btn-icon-symbol {
+  display: none !important;
+}
+
+.product-card__btn.is-added .product-card__btn-check {
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  animation: cardBtnPop 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes cardBtnSpin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes cardBtnPop {
+  0% {
+    transform: scale(0.6);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* Product Card Options Container (supports multiple variant options like Color & Material) */
+.product-card__options {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+  margin-bottom: 0.4rem;
+}
+
+.product-card__option-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.product-card__option-header {
+  display: flex;
+  align-items: baseline;
+  gap: 0.35rem;
+  font-size: 0.72rem;
+  line-height: 1.2;
+}
+
+.product-card__option-label {
+  font-weight: 600;
+  color: var(--color-foreground, #0f172a);
+}
+
+.product-card__option-selected {
+  color: rgba(var(--color-foreground-rgb, 15, 23, 42), 0.7);
+  font-weight: 500;
+}
+
+.product-card__swatches {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+/* Color Swatches (Circular) */
+.product-card__swatches--color {
+  gap: 0.45rem;
+}
+
+.product-card__swatch {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  margin: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  outline: none;
+  transition:
+    transform 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 0.2s ease;
+  box-sizing: border-box;
+}
+
+.product-card__swatches--color .product-card__swatch {
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 50%;
+  padding: 2px;
+  border: 1.5px solid transparent;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.product-card__swatches--color .product-card__swatch:hover:not(:disabled) {
+  transform: scale(1.15);
+}
+
+.product-card__swatches--color .product-card__swatch.is-active {
+  border-color: var(--color-foreground, #0f172a);
+  transform: scale(1.08);
+}
+
+.product-card__swatch-dot {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background-color: var(--swatch-color, #cbd5e1);
+  background-size: cover;
+  background-position: center;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.14);
+}
+
+/* Specific styling for white or very light color swatches */
+.product-card__swatch-dot[data-color-name="white"],
+.product-card__swatch-dot[data-color-name="cream"],
+.product-card__swatch-dot[data-color-name="beige"] {
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.25);
+}
+
+/* Pill Swatches (Non-color options like Size, Material, Length) */
+.product-card__swatches--pill .product-card__swatch {
+  min-height: 1.6rem;
+  padding: 0.2rem 0.55rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  border-radius: 9999px;
+  background: rgba(var(--color-foreground-rgb, 15, 23, 42), 0.05);
+  border: 1px solid rgba(var(--color-foreground-rgb, 15, 23, 42), 0.12);
+  color: var(--color-foreground, #0f172a);
+  line-height: 1;
+}
+
+.product-card__swatches--pill .product-card__swatch:hover:not(:disabled) {
+  background: rgba(var(--color-foreground-rgb, 15, 23, 42), 0.1);
+  border-color: rgba(var(--color-foreground-rgb, 15, 23, 42), 0.3);
+  transform: translateY(-1px);
+}
+
+.product-card__swatches--pill
+  .product-card__swatch.is-active:hover
+  .product-card__swatches--pill
+  .product-card__swatch.is-active {
+  background: var(--color-foreground, #0f172a);
+  color: var(--color-background, #ffffff);
+  border-color: var(--color-foreground, #0f172a);
+}
+
+/* Sold out state */
+.product-card__swatch.is-sold-out {
+  opacity: 0.45;
+  position: relative;
+}
+
+.product-card__swatches--color .product-card__swatch.is-sold-out::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 2px;
+  right: 2px;
+  height: 1.5px;
+  background: #ef4444;
+  transform: rotate(-45deg);
+  pointer-events: none;
+}
+
+.product-card__swatches--pill .product-card__swatch.is-sold-out {
+  text-decoration: line-through;
+}
+
+/* Floating Swatch Tooltip */
+.product-card__swatch-tooltip {
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%) translateY(4px);
+  background: rgba(15, 23, 42, 0.92);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  color: #ffffff;
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 0.25rem 0.5rem;
+  border-radius: 6px;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    opacity 0.18s ease,
+    transform 0.18s ease,
+    visibility 0.18s ease;
+  z-index: 10;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.product-card__swatch-tooltip::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 4px;
+  border-style: solid;
+  border-color: rgba(15, 23, 42, 0.92) transparent transparent transparent;
+}
+
+.product-card__swatch:hover .product-card__swatch-tooltip {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* Smooth Image Transition on variant switch */
+.product-card__image--primary {
+  transition:
+    opacity 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.4s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.product-card__image--primary.is-switching {
+  opacity: 0.35;
+  transform: scale(0.98);
 }
 
 /* Product Content Details (Global text alignment) */

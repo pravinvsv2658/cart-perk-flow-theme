@@ -17,7 +17,7 @@
   <p>{{ product.description }}</p>
 </div>
 
-{{ 'quick-view.css' | asset_url | stylesheet_tag }}
+{{ 'swatches.css' | asset_url | stylesheet_tag }}
 
 <div class="product-form">
   <product-form class="product-form__wrapper">
@@ -26,16 +26,16 @@
 
       {%- unless product.has_only_default_variant -%}
         <div class="product-options">
-          {%- for option in product.options_with_values -%}
-            {% render 'variant-swatches',
-              product: product,
-              option: option,
-              option_index: forloop.index0,
-              variant_style: settings.variant_style,
-              section_id: section.id
-            %}
-          {%- endfor -%}
+          {% render 'variant-swatches',
+            product: product,
+            context: 'product',
+            section_id: section.id
+          %}
         </div>
+
+        <script type="application/json" data-product-variants>
+          {{ product.variants | json }}
+        </script>
       {%- endunless -%}
 
       <select name="id">

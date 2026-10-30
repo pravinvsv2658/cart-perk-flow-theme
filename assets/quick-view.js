@@ -13,68 +13,11 @@
       : '$' + (cents / 100).toFixed(2);
   }
 
-  // Common color hex map for swatches
-  var COLOR_MAP = {
-    white: '#ffffff',
-    black: '#000000',
-    red: '#ef4444',
-    green: '#22c55e',
-    blue: '#3b82f6',
-    yellow: '#eab308',
-    orange: '#f97316',
-    purple: '#a855f7',
-    pink: '#ec4899',
-    gray: '#6b7280',
-    grey: '#6b7280',
-    navy: '#1e3a8a',
-    brown: '#78350f',
-    beige: '#f5f5dc',
-    gold: '#d97706',
-    silver: '#cbd5e1',
-    charcoal: '#334155',
-    teal: '#0d9488',
-    olive: '#65a30d',
-    maroon: '#881337',
-    cream: '#fef3c7',
-    coral: '#f43f5e',
-    lavender: '#e9d5ff',
-    amber: '#d97706',
-    slate: '#64748b',
-    khaki: '#c3b091',
-    sand: '#e2d4b7'
-  };
-
   function getColorHex(val) {
-    if (!val) return '#cccccc';
-    var clean = val.toLowerCase().replace(/[^a-z0-9]/g, '');
-
-    // 1. Check custom color swatches entered from Theme Settings
-    if (window.theme && typeof window.theme.customColorSwatches === 'string' && window.theme.customColorSwatches.trim()) {
-      var lines = window.theme.customColorSwatches.split('\n');
-      for (var i = 0; i < lines.length; i++) {
-        var line = lines[i].trim();
-        if (line && line.indexOf(':') !== -1) {
-          var parts = line.split(':');
-          var k = parts[0].trim().toLowerCase().replace(/[^a-z0-9]/g, '');
-          var v = parts[1].trim();
-          if (k === clean && v) {
-            return v;
-          }
-        }
-      }
+    if (window.theme && typeof window.theme.getColorHex === 'function') {
+      return window.theme.getColorHex(val);
     }
-
-    // 2. Exact match in default COLOR_MAP
-    if (COLOR_MAP[clean]) return COLOR_MAP[clean];
-
-    // 3. Partial keyword match (e.g. "midnight blue" matches "blue")
-    for (var colKey in COLOR_MAP) {
-      if (clean.indexOf(colKey) !== -1) {
-        return COLOR_MAP[colKey];
-      }
-    }
-
-    return val.toLowerCase();
+    return '#cbd5e1';
   }
 
   class QuickViewModal extends HTMLElement {
@@ -438,11 +381,12 @@
           } else {
             // Swatches for Color option, Rectangle Pills for other options
             optionsHtml +=
-              '<div class="quick-view-modal__option-group" data-option-group="' + o + '">' +
-              '<div class="quick-view-modal__option-header">' +
-              optName + ': <span data-option-header-val="' + o + '">' + selectedVal + '</span>' +
+              '<div class="swatch-group quick-view-modal__option-group" data-option-group="' + o + '">' +
+              '<div class="swatch-group__header quick-view-modal__option-header">' +
+              '<span class="swatch-group__label">' + optName + ':</span> ' +
+              '<span class="swatch-group__selected" data-option-header-val="' + o + '" data-selected-value>' + selectedVal + '</span>' +
               '</div>' +
-              '<div class="quick-view-modal__option-values">';
+              '<div class="swatch-group__values swatch-group__values--' + (isColor ? 'color' : 'pill') + ' quick-view-modal__option-values">';
 
             for (var v = 0; v < opt.values.length; v++) {
               var val = opt.values[v];
@@ -451,30 +395,35 @@
               if (isColor) {
                 // Color option: Render color swatch (image swatch if variant has image, else color swatch)
                 var variantImg = getVariantImageForOption(product, o, val);
+                var hex = (window.theme && typeof window.theme.getColorHex === 'function')
+                  ? window.theme.getColorHex(val)
+                  : getColorHex(val);
+
                 if (variantImg) {
                   optionsHtml +=
-                    '<button type="button" class="quick-view-modal__swatch quick-view-modal__swatch--image ' + isPillActive + '" ' +
-                    'data-qv-option data-option-index="' + o + '" data-value="' + val + '" ' +
-                    'style="background-image: url(\'' + variantImg + '\');" ' +
+                    '<button type="button" class="swatch swatch--color swatch--image quick-view-modal__swatch quick-view-modal__swatch--image ' + isPillActive + '" ' +
+                    'data-swatch-btn data-qv-option data-option-index="' + o + '" data-value="' + val + '" ' +
+                    'style="background-image: url(\'' + variantImg + '\'); --swatch-color: ' + hex + ';" ' +
                     'title="' + val + '" aria-label="' + val + '">' +
-                    '<span class="quick-view-modal__swatch-tooltip">' + val + '</span>' +
+                    '<span class="swatch__inner swatch__inner--image quick-view-modal__swatch-inner" style="background-image: url(\'' + variantImg + '\');"></span>' +
+                    '<span class="swatch__tooltip quick-view-modal__swatch-tooltip">' + val + '</span>' +
                     '</button>';
                 } else {
-                  var hex = getColorHex(val);
                   optionsHtml +=
-                    '<button type="button" class="quick-view-modal__swatch ' + isPillActive + '" ' +
-                    'data-qv-option data-option-index="' + o + '" data-value="' + val + '" ' +
-                    'style="background-color: ' + hex + ';" title="' + val + '" aria-label="' + val + '">' +
-                    '<span class="quick-view-modal__swatch-tooltip">' + val + '</span>' +
+                    '<button type="button" class="swatch swatch--color quick-view-modal__swatch ' + isPillActive + '" ' +
+                    'data-swatch-btn data-qv-option data-option-index="' + o + '" data-value="' + val + '" ' +
+                    'style="background-color: ' + hex + '; --swatch-color: ' + hex + ';" title="' + val + '" aria-label="' + val + '">' +
+                    '<span class="swatch__inner swatch__inner--color quick-view-modal__swatch-inner" style="background-color: ' + hex + ';"></span>' +
+                    '<span class="swatch__tooltip quick-view-modal__swatch-tooltip">' + val + '</span>' +
                     '</button>';
                 }
               } else {
-                // Other options (Size, Material, Style, etc.): Show variant name in rectangle with border radius
+                // Other options (Size, Material, Style, etc.): Show variant name in rounded pill
                 optionsHtml +=
-                  '<button type="button" class="quick-view-modal__pill ' + isPillActive + '" ' +
-                  'data-qv-option data-option-index="' + o + '" data-value="' + val + '" ' +
+                  '<button type="button" class="swatch swatch--pill quick-view-modal__pill ' + isPillActive + '" ' +
+                  'data-swatch-btn data-qv-option data-option-index="' + o + '" data-value="' + val + '" ' +
                   'aria-label="' + val + '">' +
-                  val +
+                  '<span class="swatch__text">' + val + '</span>' +
                   '</button>';
               }
             }
@@ -767,6 +716,36 @@
         if (btnText) {
           btnText.textContent = matchedVariant.available ? 'Add to cart' : 'Sold out';
         }
+      }
+
+      // Update options availability state (sold-out strikethrough) across other option groups
+      if (this.currentProduct && this.currentProduct.variants) {
+        var allGroups = this.querySelectorAll('[data-option-group]');
+        allGroups.forEach(function (grp) {
+          var grpIdx = parseInt(grp.getAttribute('data-option-group'), 10);
+          var btns = grp.querySelectorAll('[data-qv-option]');
+          btns.forEach(function (btn) {
+            var btnVal = btn.getAttribute('data-value');
+            var testSelections = self.selectedOptions.slice();
+            testSelections[grpIdx] = btnVal;
+
+            var testVariant = self.currentProduct.variants.find(function (v) {
+              if (!v.options) return false;
+              for (var k = 0; k < testSelections.length; k++) {
+                if (testSelections[k] !== undefined && v.options[k] !== testSelections[k]) {
+                  return false;
+                }
+              }
+              return true;
+            });
+
+            if (testVariant && testVariant.available) {
+              btn.classList.remove('is-sold-out');
+            } else {
+              btn.classList.add('is-sold-out');
+            }
+          });
+        });
       }
     }
   }

@@ -675,6 +675,7 @@
   background: rgba(var(--color-foreground-rgb, 15, 23, 42), 0.08);
 }
 
+.header-search__variant-pill.is-active:hover,
 .header-search__variant-pill.is-active {
   border-color: var(--color-foreground, #0f172a);
   background: var(--color-foreground, #0f172a);

@@ -375,7 +375,7 @@
 .featured-collection__arrow--side:disabled,
 .featured-collection__arrow--side.slick-disabled {
   transform: translateY(-50%) !important;
-  opacity: 0.35 !important;
+  opacity: 0.7 !important;
   pointer-events: auto !important;
   cursor: not-allowed !important;
 }

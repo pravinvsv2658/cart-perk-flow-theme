@@ -49,6 +49,7 @@
     "card_text_alignment": "left",
     "card_show_vendor": true,
     "card_show_rating": true,
+    "card_show_variants": true,
     "card_quick_view_mode": "standard",
     "card_show_secondary_image": true,
     "card_show_sale_badge": true,

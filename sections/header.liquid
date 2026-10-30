@@ -1,14 +1,111 @@
-<header>
-  <h2 class="header__title">
-    {{ shop.name | link_to: routes.root_url }}
-  </h2>
+{%- liquid
+  assign logo_pos = section.settings.logo_position | default: 'left'
+  assign logo_width = section.settings.logo_width | default: 120
+  assign enable_sticky = section.settings.enable_sticky_header
+  assign sticky_type = section.settings.sticky_header_type | default: 'always'
 
-  <div class="header__menu">
-    {% for link in section.settings.menu.links %}
-      {{ link.title | link_to: link.url }}
-    {% endfor %}
+  assign is_transparent = false
+  if section.settings.enable_transparent_header
+    if section.settings.transparent_home_only
+      if template.name == 'index'
+        assign is_transparent = true
+      endif
+    else
+      assign is_transparent = true
+    endif
+  endif
+-%}
+
+{%- style -%}
+  #shopify-section-{{ section.id }} {
+    display: block;
+    width: 100%;
+  }
+  #shopify-section-{{ section.id }} > * {
+    grid-column: 1 / -1;
+    width: 100%;
+  }
+
+  {%- if is_transparent -%}
+    #shopify-section-{{ section.id }} {
+      position: absolute;
+      top: var(--announcement-height, 0px);
+      left: 0;
+      width: 100%;
+      z-index: 100;
+      pointer-events: none;
+    }
+    #shopify-section-{{ section.id }} > * {
+      pointer-events: auto;
+    }
+    {%- if enable_sticky -%}
+      #shopify-section-{{ section.id }}.is-sticky-active {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        z-index: 100;
+      }
+    {%- endif -%}
+  {%- elsif enable_sticky -%}
+    #shopify-section-{{ section.id }} {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+  {%- endif -%}
+{%- endstyle -%}
+
+{%- capture header_logo -%}
+  <div class="header__heading">
+    <a
+      href="{{ routes.root_url }}"
+      class="header__heading-link{% if is_transparent and section.settings.transparent_logo != blank %} header__heading-link--has-transparent{% endif %}"
+    >
+      {%- if section.settings.logo != blank -%}
+        {%- assign logo_alt = section.settings.logo.alt | default: shop.name | escape -%}
+        {{
+          section.settings.logo
+          | image_url: width: logo_width
+          | image_tag:
+            loading: 'eager',
+            class: 'header__logo header__logo--main',
+            widths: '50, 80, 100, 120, 150, 180, 200, 240, 300',
+            width: logo_width,
+            alt: logo_alt
+        }}
+      {%- else -%}
+        <h2 class="header__title header__title--main">{{ shop.name }}</h2>
+      {%- endif -%}
+
+      {%- if is_transparent and section.settings.transparent_logo != blank -%}
+        {%- assign transparent_logo_alt = section.settings.transparent_logo.alt | default: shop.name | escape -%}
+        {{
+          section.settings.transparent_logo
+          | image_url: width: logo_width
+          | image_tag:
+            loading: 'eager',
+            class: 'header__logo header__logo--transparent',
+            widths: '50, 80, 100, 120, 150, 180, 200, 240, 300',
+            width: logo_width,
+            alt: transparent_logo_alt
+        }}
+      {%- endif -%}
+    </a>
   </div>
+{%- endcapture -%}
 
+{%- capture header_menu -%}
+  <nav class="header__menu" aria-label="Main navigation">
+    {% for link in section.settings.menu.links %}
+      <a href="{{ link.url }}" class="header__menu-item{% if link.active %} is-active{% endif %}">
+        {{ link.title }}
+      </a>
+    {% endfor %}
+  </nav>
+{%- endcapture -%}
+
+{%- capture header_icons -%}
   <div class="header__icons">
     {%- if section.settings.enable_search -%}
       <button
@@ -22,17 +119,49 @@
     {%- endif -%}
 
     {% if shop.customer_accounts_enabled %}
-      <a href="{{ routes.account_url }}" class="header__account-link" aria-label="Account">
+      <a href="{{ routes.account_url }}" class="header__account-link header__icon-btn" aria-label="Account">
         {% render 'icon', icon: 'account', width: 24, height: 24 %}
       </a>
     {% endif %}
 
-    <a href="{{ routes.cart_url }}" class="header__cart-link" data-cart-trigger aria-label="{{ 'cart.title' | t }}">
+    <a href="{{ routes.cart_url }}" class="header__cart-link header__icon-btn" data-cart-trigger aria-label="{{ 'cart.title' | t }}">
       <span class="header__cart-count" data-cart-count>{{ cart.item_count }}</span>
       {% render 'icon', icon: 'cart', width: 24, height: 24 %}
     </a>
   </div>
-</header>
+{%- endcapture -%}
+
+<sticky-header
+  class="header-wrapper full-width{% if is_transparent %} header-wrapper--transparent{% endif %}{% if enable_sticky %} header-wrapper--sticky{% endif %}{% if is_transparent and section.settings.transparent_divider %} header-wrapper--has-divider{% endif %}"
+  data-sticky="{{ enable_sticky }}"
+  data-sticky-type="{{ sticky_type }}"
+  data-transparent="{{ is_transparent }}"
+  style="
+    --logo-width: {{ logo_width }}px;
+    {% if is_transparent %}
+      --transparent-text-color: {{ section.settings.transparent_text_color | default: '#ffffff' }};
+    {% endif %}
+  "
+>
+  {%- if logo_pos == 'top' -%}
+    <header class="header header--logo-top">
+      <div class="header__row header__row--top">
+        <div class="header__spacer" aria-hidden="true"></div>
+        {{ header_logo }}
+        {{ header_icons }}
+      </div>
+      <div class="header__row header__row--bottom">
+        {{ header_menu }}
+      </div>
+    </header>
+  {%- else -%}
+    <header class="header header--logo-{{ logo_pos }}">
+      {{ header_logo }}
+      {{ header_menu }}
+      {{ header_icons }}
+    </header>
+  {%- endif -%}
+</sticky-header>
 
 {%- if section.settings.enable_search -%}
   {{ 'header-search.css' | asset_url | stylesheet_tag }}
@@ -48,73 +177,131 @@
   %}
 {%- endif -%}
 
-{% stylesheet %}
-  header {
-    height: 5rem;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-  }
-  header a {
-    position: relative;
-    text-decoration: none;
-    color: var(--color-foreground);
-  }
-  header .header__icon-btn {
-    background: transparent;
-    border: none;
-    padding: 0;
-    cursor: pointer;
-    color: var(--color-foreground);
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    transition: opacity 0.2s;
-  }
-  header .header__icon-btn:hover {
-    opacity: 0.75;
-  }
-  header .header__cart-link {
-    display: inline-flex;
-    align-items: center;
-    position: relative;
-  }
-  header .header__cart-count {
-    position: absolute;
-    top: -5px;
-    right: -8px;
-    background: var(--color-foreground);
-    color: var(--color-background);
-    border-radius: 9999px;
-    font-size: 0.7rem;
-    font-weight: 700;
-    min-width: 1.25rem;
-    height: 1.25rem;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0 0.25rem;
-    line-height: 1;
-  }
-  header svg {
-    width: 2rem;
-  }
-  header .header__menu,
-  header .header__icons {
-    display: flex;
-    gap: 1.25rem;
-    align-items: center;
-  }
-{% endstylesheet %}
+{{ 'header.css' | asset_url | stylesheet_tag }}
+<script src="{{ 'header.js' | asset_url }}" defer="defer"></script>
+
 
 {% schema %}
 {
   "name": "t:general.header",
   "settings": [
     {
+      "type": "header",
+      "content": "Logo"
+    },
+    {
+      "type": "image_picker",
+      "id": "logo",
+      "label": "Logo image"
+    },
+    {
+      "type": "range",
+      "id": "logo_width",
+      "label": "Custom logo width",
+      "min": 50,
+      "max": 300,
+      "step": 5,
+      "unit": "px",
+      "default": 120
+    },
+    {
+      "type": "select",
+      "id": "logo_position",
+      "label": "Logo position",
+      "options": [
+        {
+          "value": "left",
+          "label": "Left"
+        },
+        {
+          "value": "center",
+          "label": "Center"
+        },
+        {
+          "value": "top",
+          "label": "New line on top"
+        }
+      ],
+      "default": "left",
+      "info": "Position the logo: left, center, or on its own new line on top."
+    },
+    {
+      "type": "header",
+      "content": "Sticky header"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_sticky_header",
+      "label": "Enable sticky header",
+      "default": true,
+      "info": "Keeps the header visible at the top of the screen when scrolling."
+    },
+    {
+      "type": "select",
+      "id": "sticky_header_type",
+      "label": "Sticky header type",
+      "options": [
+        {
+          "value": "always",
+          "label": "Always sticky"
+        },
+        {
+          "value": "on_scroll_up",
+          "label": "On scroll up"
+        }
+      ],
+      "default": "always"
+    },
+    {
+      "type": "header",
+      "content": "Transparent header"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_transparent_header",
+      "label": "Enable transparent header",
+      "default": false,
+      "info": "Displays a transparent header that overlays the top section (e.g. hero banner)."
+    },
+    {
+      "type": "checkbox",
+      "id": "transparent_home_only",
+      "label": "Homepage only",
+      "default": true,
+      "info": "Only display transparent header on the homepage."
+    },
+    {
+      "type": "color",
+      "id": "transparent_text_color",
+      "label": "Transparent text & icons color",
+      "default": "#ffffff",
+      "info": "Color for navigation, text logo, and icons when header is transparent."
+    },
+    {
+      "type": "image_picker",
+      "id": "transparent_logo",
+      "label": "Transparent logo",
+      "info": "Optional alternative logo (e.g. white logo) when header is transparent."
+    },
+    {
+      "type": "checkbox",
+      "id": "transparent_divider",
+      "label": "Show bottom divider",
+      "default": false,
+      "info": "Show a subtle divider line below the transparent header."
+    },
+    {
+      "type": "header",
+      "content": "Navigation"
+    },
+    {
       "type": "link_list",
       "id": "menu",
       "label": "t:labels.menu"
+    },
+    {
+      "type": "header",
+      "content": "Search"
     },
     {
       "type": "checkbox",

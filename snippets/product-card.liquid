@@ -6,7 +6,8 @@
   @param {boolean} [show_secondary_image] - Show second image on hover
   @param {boolean} [show_vendor] - Show vendor/brand name
   @param {boolean} [show_rating] - Show star review rating
-  @param {string} [quick_view_mode] - Quick view mode: 'none', 'standard', or 'all'
+  @param {string} [quick_view_mode] - Quick view mode: 'none' or 'standard'
+  @param {boolean} [show_variants] - Show variant swatches below the title
   @param {boolean} [show_sale_badge] - Show discount/sale badge
   @param {boolean} [show_stock_badge] - Show stock status badge
   @param {boolean} [enable_glass] - Apply glassmorphism styling
@@ -14,7 +15,7 @@
   @param {string} [section_id] - ID of the parent section for unique form IDs
 
   @example
-  {% render 'product-card', product: product, media_aspect_ratio: 'portrait', quick_view_mode: 'standard' %}
+  {% render 'product-card', product: product, media_aspect_ratio: 'portrait', quick_view_mode: 'standard', show_variants: true %}
 {% enddoc %}
 
 {%- liquid
@@ -28,6 +29,14 @@
   assign show_rating_val = settings.card_show_rating
   if show_rating != null
     assign show_rating_val = show_rating
+  endif
+
+  assign show_variants_val = settings.card_show_variants
+  if show_variants != null
+    assign show_variants_val = show_variants
+  endif
+  if show_variants_val == null
+    assign show_variants_val = true
   endif
 
   assign qv_mode = quick_view_mode
@@ -65,7 +74,7 @@
 
   assign current_variant = product.selected_or_first_available_variant
   assign has_multiple_variants = false
-  if product.variants.size > 1
+  if product.has_only_default_variant == false or product.variants.size > 1
     assign has_multiple_variants = true
   endif
 
@@ -151,34 +160,23 @@
       </div>
 
       {%- # Quick Add / Quick View Action -%}
-      {%- if qv_mode != 'none' and product != blank -%}
+      {%- if qv_mode == 'standard' and product != blank -%}
         <div class="product-card__quick-add">
           {%- if is_sold_out -%}
-            <button type="button" class="product-card__btn product-card__btn--disabled" disabled>Sold out</button>
-          {%- elsif qv_mode == 'all' -%}
-            {%- # Quick view modal for all products -%}
-            <button
-              type="button"
-              class="product-card__btn product-card__btn--options"
-              data-quick-view-trigger
-              data-product-handle="{{ product.handle }}"
-              aria-haspopup="dialog"
-              aria-label="Quick view {{ product.title | escape }}"
-            >
-              <span class="product-card__btn-text">Quick view</span>
-              <span class="product-card__btn-icon" aria-hidden="true">+</span>
+            <button type="button" class="product-card__btn product-card__btn--disabled" disabled>
+              <span class="product-card__btn-text">Sold out</span>
             </button>
           {%- elsif has_multiple_variants -%}
-            {%- # Standard mode: Has variants -> Choose options opens Quick View -%}
+            {%- # Standard mode: Has variants -> Choose option opens Quick View -%}
             <button
               type="button"
               class="product-card__btn product-card__btn--options"
               data-quick-view-trigger
               data-product-handle="{{ product.handle }}"
               aria-haspopup="dialog"
-              aria-label="Choose options for {{ product.title | escape }}"
+              aria-label="Choose option for {{ product.title | escape }}"
             >
-              <span class="product-card__btn-text">Choose options</span>
+              <span class="product-card__btn-text">Choose option</span>
               <span class="product-card__btn-icon" aria-hidden="true">+</span>
             </button>
           {%- else -%}
@@ -200,7 +198,25 @@
                   aria-label="Add {{ product.title | escape }} to cart"
                 >
                   <span class="product-card__btn-text">Add to cart</span>
-                  <span class="product-card__btn-icon" aria-hidden="true">+</span>
+                  <span class="product-card__btn-icon" aria-hidden="true">
+                    <span class="product-card__btn-icon-symbol">+</span>
+                    <span class="product-card__btn-loader" aria-hidden="true">
+                      <svg
+                        class="icon-spinner"
+                        viewBox="0 0 24 24"
+                        width="16"
+                        height="16"
+                        fill="none"
+                        stroke="currentColor"
+                      >
+                        <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2.5" stroke-opacity="0.3"></circle>
+                        <path d="M12 3a9 9 0 0 1 9 9" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"></path>
+                      </svg>
+                    </span>
+                    <span class="product-card__btn-check" aria-hidden="true">
+                      {% render 'icon', icon: 'check', width: 16, height: 16 %}
+                    </span>
+                  </span>
                 </button>
               </form>
             </product-form>
@@ -218,10 +234,21 @@
       {%- endif -%}
 
       <h3 class="product-card__title">
-        <a href="{{ product.url | default: '#' }}" class="product-card__title-link">
+        <a href="{{ current_variant.url | default: product.url | default: '#' }}" class="product-card__title-link">
           {{ product.title | default: 'Precision Glass Accessory' }}
         </a>
       </h3>
+
+      {%- # Centralized Variant Swatches -%}
+      {%- if show_variants_val and product != blank and has_multiple_variants -%}
+        <div class="product-card__options" data-product-card-options>
+          {% render 'variant-swatches', product: product, context: 'card', section_id: section_id %}
+        </div>
+
+        <script type="application/json" data-card-variants>
+          {{ product.variants | json }}
+        </script>
+      {%- endif -%}
 
       {%- if show_rating_val -%}
         <div class="product-card__rating">

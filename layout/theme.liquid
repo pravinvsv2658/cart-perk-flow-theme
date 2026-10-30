@@ -7,6 +7,7 @@
     {% # Load and preload the global and component CSS %}
     {{ 'main-style.css' | asset_url | stylesheet_tag: preload: true }}
     {{ 'component-card.css' | asset_url | stylesheet_tag: preload: true }}
+    {{ 'swatches.css' | asset_url | stylesheet_tag: preload: true }}
     {{ 'cart-drawer.css' | asset_url | stylesheet_tag: preload: true }}
 
     {% # Global theme configuration %}
@@ -23,8 +24,10 @@
       window.theme.customColorSwatches = {{ settings.custom_color_swatches | default: '' | json }};
     </script>
 
-    {% # Global Cart Utils, Add to Cart & Cart Drawer Components %}
+    {% # Global Cart Utils, Swatches, Add to Cart & Cart Drawer Components %}
     <script src="{{ 'cart-utils.js' | asset_url }}" defer="defer"></script>
+    <script src="{{ 'swatches.js' | asset_url }}" defer="defer"></script>
+    <script src="{{ 'component-card.js' | asset_url }}" defer="defer"></script>
     <script src="{{ 'product-form.js' | asset_url }}" defer="defer"></script>
     <script src="{{ 'cart-drawer.js' | asset_url }}" defer="defer"></script>
     <script src="{{ 'cart-discount.js' | asset_url }}" defer="defer"></script>

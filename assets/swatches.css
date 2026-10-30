@@ -1,0 +1,355 @@
+/**
+ * Universal Centralized Swatches System - CartPerksFlow Theme
+ * Provides consistent layout, structure, and styling for product swatches across:
+ * - Product Cards (Collection, Search, Featured Collection)
+ * - Quick View Modal & Drawer
+ * - Product Page (Main Product Section)
+ */
+
+/* Swatch Group Container */
+.swatch-group,
+.product-card__option-group,
+.variant-swatches,
+.quick-view-modal__option-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin-bottom: 0.5rem;
+}
+
+.swatch-group--card,
+.product-card__option-group {
+  gap: 0.25rem;
+  margin-bottom: 0.35rem;
+}
+
+/* Swatch Group Header & Labels */
+.swatch-group__header,
+.product-card__option-header,
+.variant-swatches__header,
+.quick-view-modal__option-header {
+  display: flex;
+  align-items: baseline;
+  gap: 0.35rem;
+  font-size: 0.8rem;
+  line-height: 1.25;
+  color: var(--color-foreground, #0f172a);
+}
+
+.swatch-group--card .swatch-group__header,
+.product-card__option-header {
+  font-size: 0.72rem;
+  gap: 0.3rem;
+}
+
+.swatch-group__label,
+.product-card__option-label,
+.variant-swatches__label {
+  font-weight: 600;
+  color: var(--color-foreground, #0f172a);
+}
+
+.swatch-group__selected,
+.product-card__option-selected,
+.variant-swatches__selected-value,
+[data-option-selected-label],
+[data-option-header-val] {
+  color: rgba(var(--color-foreground-rgb, 15, 23, 42), 0.7);
+  font-weight: 500;
+}
+
+/* Swatch Values List */
+.swatch-group__values,
+.product-card__swatches,
+.variant-swatches__values,
+.quick-view-modal__option-values {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+}
+
+.swatch-group--card .swatch-group__values,
+.product-card__swatches {
+  gap: 0.38rem;
+}
+
+.swatch-group__values--color,
+.product-card__swatches--color {
+  gap: 0.45rem;
+}
+
+.swatch-group__values--pill,
+.product-card__swatches--pill {
+  gap: 0.4rem;
+}
+
+/* Universal Swatch Base Button */
+.swatch,
+.product-card__swatch,
+.variant-swatch,
+.variant-pill,
+.quick-view-modal__swatch,
+.quick-view-modal__pill {
+  appearance: none;
+  -webkit-appearance: none;
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  margin: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  outline: none;
+  box-sizing: border-box;
+  text-decoration: none;
+  user-select: none;
+  transition:
+    transform 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+    border-color 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+    background-color 0.2s ease,
+    opacity 0.2s ease;
+}
+
+.swatch:focus-visible,
+.product-card__swatch:focus-visible,
+.variant-swatch:focus-visible,
+.variant-pill:focus-visible,
+.quick-view-modal__swatch:focus-visible,
+.quick-view-modal__pill:focus-visible {
+  outline: 2px solid var(--color-foreground, #0f172a);
+  outline-offset: 2px;
+}
+
+/* ==========================================================================
+   Color Swatches (Circular Color or Image Swatches)
+   ========================================================================== */
+.swatch--color,
+.product-card__swatches--color .product-card__swatch,
+.variant-swatch,
+.quick-view-modal__swatch {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  padding: 2px;
+  border: 1.5px solid rgba(var(--color-foreground-rgb, 15, 23, 42), 0.2);
+  background-color: var(--swatch-color, #e2e8f0);
+  background-clip: padding-box;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+/* Slightly more compact size for product cards to keep cards balanced */
+.swatch-group--card .swatch--color,
+.product-card__swatches--color .product-card__swatch {
+  width: 25px;
+  height: 25px;
+  padding: 1.5px;
+  border-width: 1.5px;
+}
+
+.swatch--color:hover:not(:disabled),
+.product-card__swatches--color .product-card__swatch:hover:not(:disabled),
+.variant-swatch:hover:not(:disabled),
+.quick-view-modal__swatch:hover:not(:disabled) {
+  transform: scale(1.14);
+  border-color: var(--color-foreground, #0f172a);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
+}
+
+.swatch--color.is-active,
+.product-card__swatches--color .product-card__swatch.is-active,
+.variant-swatch.is-active,
+.quick-view-modal__swatch.is-active {
+  border-color: var(--color-foreground, #0f172a);
+  transform: scale(1.08);
+  box-shadow:
+    0 0 0 2px var(--color-background, #ffffff),
+    0 0 0 4px var(--color-foreground, #0f172a);
+}
+
+/* Inner Circle Fill (Handles background color or image) */
+.swatch__inner,
+.product-card__swatch-dot,
+.variant-swatch__inner,
+.quick-view-modal__swatch-inner {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background-color: var(--swatch-color, inherit);
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.14);
+  pointer-events: none;
+}
+
+/* Enhanced definition for white/cream swatches */
+.swatch__inner[data-color-name="white"],
+.swatch__inner[data-color-name="cream"],
+.swatch__inner[data-color-name="beige"],
+.product-card__swatch-dot[data-color-name="white"],
+.product-card__swatch-dot[data-color-name="cream"],
+.product-card__swatch-dot[data-color-name="beige"] {
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.28);
+}
+
+/* Image Swatch Variant */
+.swatch--image,
+.variant-swatch--image,
+.quick-view-modal__swatch--image {
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+/* ==========================================================================
+   Pill Swatches (Rectangle / Oval Buttons for Size, Material, etc.)
+   ========================================================================== */
+.swatch--pill,
+.product-card__swatches--pill .product-card__swatch,
+.variant-pill,
+.quick-view-modal__pill {
+  min-height: 2rem;
+  padding: 0.35rem 0.85rem;
+  font-size: 0.82rem;
+  font-weight: 500;
+  border-radius: 9999px;
+  background: rgba(var(--color-foreground-rgb, 15, 23, 42), 0.05);
+  border: 1px solid rgba(var(--color-foreground-rgb, 15, 23, 42), 0.15);
+  color: var(--color-foreground, #0f172a);
+  line-height: 1.1;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.swatch-group--card .swatch--pill,
+.product-card__swatches--pill .product-card__swatch {
+  min-height: 1.6rem;
+  padding: 0.2rem 0.55rem;
+  font-size: 0.74rem;
+  border-radius: 9999px;
+}
+
+.swatch--pill:hover:not(:disabled),
+.product-card__swatches--pill .product-card__swatch:hover:not(:disabled),
+.variant-pill:hover:not(:disabled),
+.quick-view-modal__pill:hover:not(:disabled) {
+  background: rgba(var(--color-foreground-rgb, 15, 23, 42), 0.1);
+  border-color: rgba(var(--color-foreground-rgb, 15, 23, 42), 0.35);
+  transform: translateY(-1px);
+  color: #0f172a;
+}
+
+.swatch--pill.is-active,
+.product-card__swatches--pill .product-card__swatch.is-active,
+.variant-pill.is-active,
+.quick-view-modal__pill.is-active {
+  background: var(--color-foreground, #0f172a);
+  color: var(--color-background, #ffffff);
+  border-color: var(--color-foreground, #0f172a);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+
+.swatch__text,
+.product-card__swatch-text {
+  display: inline-block;
+  line-height: inherit;
+}
+
+/* ==========================================================================
+   Sold Out State
+   ========================================================================== */
+.swatch.is-sold-out,
+.product-card__swatch.is-sold-out,
+.variant-swatch.is-sold-out,
+.variant-pill.is-sold-out,
+.quick-view-modal__swatch.is-sold-out,
+.quick-view-modal__pill.is-sold-out {
+  opacity: 0.45;
+  position: relative;
+}
+
+/* Color swatch sold-out diagonal slash */
+.swatch--color.is-sold-out::after,
+.product-card__swatches--color .product-card__swatch.is-sold-out::after,
+.variant-swatch.is-sold-out::after,
+.quick-view-modal__swatch.is-sold-out::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 2px;
+  right: 2px;
+  height: 1.5px;
+  background: #ef4444;
+  transform: rotate(-45deg);
+  pointer-events: none;
+  z-index: 2;
+}
+
+/* Pill swatch sold-out strikethrough */
+.swatch--pill.is-sold-out,
+.product-card__swatches--pill .product-card__swatch.is-sold-out,
+.variant-pill.is-sold-out,
+.quick-view-modal__pill.is-sold-out {
+  text-decoration: line-through;
+}
+
+/* ==========================================================================
+   Floating Swatch Tooltip
+   ========================================================================== */
+.swatch__tooltip,
+.product-card__swatch-tooltip,
+.variant-swatch__tooltip,
+.quick-view-modal__swatch-tooltip {
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%) translateY(4px);
+  background: rgba(15, 23, 42, 0.94);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  color: #ffffff;
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 0.25rem 0.5rem;
+  border-radius: 6px;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    opacity 0.18s ease,
+    transform 0.18s ease,
+    visibility 0.18s ease;
+  z-index: 100;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.24);
+}
+
+.swatch__tooltip::after,
+.product-card__swatch-tooltip::after,
+.variant-swatch__tooltip::after,
+.quick-view-modal__swatch-tooltip::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 4px;
+  border-style: solid;
+  border-color: rgba(15, 23, 42, 0.94) transparent transparent transparent;
+}
+
+.swatch:hover .swatch__tooltip,
+.product-card__swatch:hover .product-card__swatch-tooltip,
+.variant-swatch:hover .variant-swatch__tooltip,
+.quick-view-modal__swatch:hover .quick-view-modal__swatch-tooltip {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(-50%) translateY(0);
+}

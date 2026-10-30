@@ -211,6 +211,7 @@
                         show_secondary_image: section.settings.show_secondary_image,
                         show_vendor: section.settings.show_vendor,
                         show_rating: section.settings.show_rating,
+                        show_variants: section.settings.show_variants,
                         quick_view_mode: qv_mode,
                         show_sale_badge: section.settings.show_sale_badge,
                         show_stock_badge: section.settings.show_stock_badge,
@@ -434,10 +435,10 @@
       "type": "range",
       "id": "products_per_page",
       "label": "Results per page",
-      "min": 8,
-      "max": 36,
-      "step": 4,
-      "default": 16
+      "min": 1,
+      "max": 50,
+      "step": 1,
+      "default": 15
     },
     {
       "type": "range",
@@ -492,6 +493,12 @@
       "default": true
     },
     {
+      "type": "checkbox",
+      "id": "show_variants",
+      "label": "Show variant swatches",
+      "default": true
+    },
+    {
       "type": "select",
       "id": "quick_view_mode",
       "label": "Quick view",
@@ -502,15 +509,11 @@
         },
         {
           "value": "standard",
-          "label": "Standard (Add to cart & quick view for variants)"
-        },
-        {
-          "value": "all",
-          "label": "Quick view modal for all"
+          "label": "Standard"
         }
       ],
       "default": "standard",
-      "info": "Choose how quick action behaves: None (disabled), Standard (direct Add to cart for single-variant products, Quick view for multi-variant products), or Quick view modal for all."
+      "info": "Choose quick view action: None (disabled) or Standard (Add to cart for single-variant, Choose option for multi-variant)."
     },
     {
       "type": "select",
