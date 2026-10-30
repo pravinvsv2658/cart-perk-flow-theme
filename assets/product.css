@@ -1,0 +1,99 @@
+/**
+ * Product Section Layout Styles - CartPerksFlow Theme
+ * Responsive 2-column grid container for gallery and product information
+ */
+
+.product-section {
+  display: block;
+  width: 100%;
+  position: relative;
+  background-color: var(--color-background);
+  color: var(--color-foreground);
+}
+
+.product-section__container {
+  max-width: var(--page-width, 1320px);
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: clamp(1rem, 3vw, 2.5rem);
+  padding-right: clamp(1rem, 3vw, 2.5rem);
+  padding-top: var(--section-padding-top, 40px);
+  padding-bottom: var(--section-padding-bottom, 60px);
+}
+
+.product-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+  gap: clamp(2rem, 4vw, 4.5rem);
+  align-items: start;
+}
+
+/* Media Right layout on desktop (Gallery right, Product info left) */
+@media screen and (min-width: 990px) {
+  .product-layout--media-right {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
+  }
+
+  .product-layout--media-right .product-layout__gallery-col {
+    order: 2;
+  }
+
+  .product-layout--media-right .product-layout__info-col {
+    order: 1;
+  }
+}
+
+/* Gallery Column */
+.product-layout__gallery-col {
+  min-width: 0;
+  width: 100%;
+  transition: top 0.2s ease;
+}
+
+/* Product Info Column */
+.product-layout__info-col {
+  min-width: 0;
+  width: 100%;
+  transition: top 0.2s ease;
+}
+
+/* Desktop sticky states */
+@media screen and (min-width: 990px) {
+  /* Default: Product Info column is sticky while gallery scrolls */
+  .product-layout:not(.product-layout--sticky-gallery) .product-layout__info-col {
+    position: sticky;
+    top: clamp(1.5rem, 5vw, 6rem);
+    z-index: 2;
+  }
+
+  /* Sticky Gallery: Gallery column is sticky while product information scrolls */
+  .product-layout--sticky-gallery .product-layout__gallery-col {
+    position: sticky;
+    top: clamp(1.5rem, 5vw, 6rem);
+    z-index: 2;
+  }
+
+  .product-layout--sticky-gallery .product-layout__info-col {
+    position: static;
+    top: auto;
+  }
+}
+
+/* Responsive Breakpoints */
+@media screen and (max-width: 989px) {
+  .product-layout {
+    grid-template-columns: 1fr;
+    gap: 2.25rem;
+  }
+
+  .product-layout__info-col,
+  .product-layout__gallery-col {
+    position: static !important;
+    top: auto !important;
+  }
+
+  .product-section__container {
+    padding-top: calc(var(--section-padding-top, 40px) * 0.7);
+    padding-bottom: calc(var(--section-padding-bottom, 60px) * 0.7);
+  }
+}

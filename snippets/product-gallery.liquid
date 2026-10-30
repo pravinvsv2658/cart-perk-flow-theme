@@ -1,0 +1,564 @@
+{% doc %}
+  Renders the Product Media Gallery component for the Product page.
+  Supports responsive main image viewport, thumbnail slider/strip,
+  badges overlay, fullscreen zoom modal with slider/counter/arrows, and mobile touch swipe.
+  Powered by Slick Slider.
+
+  @param {product} product - The Shopify product object
+  @param {variant} [current_variant] - The currently active variant
+  @param {boolean} [image_zoom] - Whether image zoom/lightbox is enabled (defaults to true)
+  @param {string} [thumbnail_position] - 'bottom', 'left', or 'right' (defaults to 'bottom')
+  @param {string} [gallery_desktop_layout] - 'slider', 'stacked', or 'columns_2' (defaults to 'slider')
+  @param {string} [aspect_ratio] - 'square', 'portrait', or 'adapt' (defaults to 'square')
+
+  @example
+  {% render 'product-gallery', product: product, current_variant: current_variant, thumbnail_position: 'bottom', gallery_desktop_layout: 'slider' %}
+{% enddoc %}
+
+{%- liquid
+  assign active_variant = current_variant | default: product.selected_or_first_available_variant | default: product.variants.first
+  assign thumb_pos = thumbnail_position | default: 'bottom'
+  assign desktop_layout = gallery_desktop_layout | default: 'slider'
+  assign ratio = aspect_ratio | default: 'square'
+  assign enable_zoom = image_zoom
+  if enable_zoom == null
+    assign enable_zoom = true
+  endif
+
+  assign gallery_media = product.media
+  if gallery_media == blank or gallery_media.size == 0
+    assign gallery_media = product.images
+  endif
+
+  assign is_on_sale = false
+  if active_variant.compare_at_price > active_variant.price
+    assign is_on_sale = true
+  endif
+
+  assign is_sold_out = false
+  unless active_variant.available
+    assign is_sold_out = true
+  endunless
+
+  # Determine initial active media index based on current variant's featured media/image
+  assign initial_media_index = 0
+  if active_variant.featured_media != blank
+    for media in gallery_media
+      if media.id == active_variant.featured_media.id
+        assign initial_media_index = forloop.index0
+        break
+      endif
+    endfor
+  elsif active_variant.featured_image != blank
+    for media in gallery_media
+      if media.id == active_variant.featured_image.id
+        assign initial_media_index = forloop.index0
+        break
+      endif
+    endfor
+  endif
+-%}
+
+<product-gallery
+  class="product-gallery product-gallery--thumbs-{{ thumb_pos }} product-gallery--ratio-{{ ratio }} product-gallery--layout-{{ desktop_layout }}"
+  data-product-gallery
+  data-thumbnail-position="{{ thumb_pos }}"
+  data-desktop-layout="{{ desktop_layout }}"
+  data-media-count="{{ gallery_media.size | default: 1 }}"
+  data-initial-slide="{{ initial_media_index }}"
+>
+  {%- # Desktop Gallery Grid (Stacked & 2 Columns layout on desktop) -%}
+  {%- if desktop_layout == 'stacked' or desktop_layout == 'columns_2' -%}
+    <div
+      class="product-gallery__desktop-grid product-gallery__desktop-grid--{{ desktop_layout }}"
+      data-desktop-grid
+    >
+      {%- for media in gallery_media -%}
+        <div
+          class="product-gallery__grid-item"
+          data-grid-index="{{ forloop.index0 }}"
+          data-media-id="{{ media.id }}"
+        >
+          {%- case media.media_type -%}
+            {%- when 'image' -%}
+              <div class="product-gallery__media-wrapper product-gallery__media-wrapper--image">
+                {%- assign media_alt = media.alt | default: product.title | escape -%}
+                {{
+                  media
+                  | image_url: width: 1400
+                  | image_tag:
+                    loading: 'lazy',
+                    class: 'product-gallery__image',
+                    alt: media_alt,
+                    widths: '375, 550, 750, 950, 1200, 1600'
+                }}
+              </div>
+
+            {%- when 'video' -%}
+              <div class="product-gallery__media-wrapper product-gallery__media-wrapper--video">
+                {{ media | video_tag: controls: true, image_size: '1000x', class: 'product-gallery__video' }}
+              </div>
+
+            {%- when 'external_video' -%}
+              <div class="product-gallery__media-wrapper product-gallery__media-wrapper--external">
+                {{ media | external_video_tag: class: 'product-gallery__external-video' }}
+              </div>
+
+            {%- else -%}
+              <div class="product-gallery__media-wrapper">
+                {%- if media.src != blank or media.preview_image != blank -%}
+                  {%- assign fallback_img = media.preview_image | default: media -%}
+                  {%- assign fallback_alt = fallback_img.alt | default: product.title | escape -%}
+                  {{
+                    fallback_img
+                    | image_url: width: 1400
+                    | image_tag:
+                      loading: 'lazy',
+                      class: 'product-gallery__image',
+                      alt: fallback_alt,
+                      widths: '375, 550, 750, 950, 1200, 1600'
+                  }}
+                {%- else -%}
+                  {{ media | media_tag: class: 'product-gallery__media' }}
+                {%- endif -%}
+              </div>
+          {%- endcase -%}
+
+          {%- if enable_zoom -%}
+            <button
+              type="button"
+              class="product-gallery__zoom-trigger"
+              data-grid-zoom-trigger
+              data-slide-index="{{ forloop.index0 }}"
+              aria-label="Enlarge image"
+              title="Click to zoom image"
+            >
+              <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none">
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                <line x1="11" y1="8" x2="11" y2="14"></line>
+                <line x1="8" y1="11" x2="14" y2="11"></line>
+              </svg>
+            </button>
+          {%- endif -%}
+        </div>
+      {%- endfor -%}
+    </div>
+  {%- endif -%}
+
+  {%- # Thumbnails Strip (Left position on desktop) -%}
+  {%- if thumb_pos == 'left' and gallery_media.size > 1 and desktop_layout == 'slider' -%}
+    <div class="product-gallery__thumbnails product-gallery__thumbnails--left" data-gallery-thumbnails>
+      <button
+        type="button"
+        class="product-gallery__thumbnails-arrow product-gallery__thumbnails-arrow--prev"
+        data-thumbnail-prev
+        aria-label="Previous thumbnails"
+      >
+        {% render 'icon', icon: 'chevron-up', width: 14, height: 14 %}
+      </button>
+
+      <div class="product-gallery__thumbnails-window" data-thumbnails-window>
+        <div class="product-gallery__thumbnails-track" data-thumbnails-track>
+          {%- for media in gallery_media -%}
+            {%- assign is_thumb_active = false -%}
+            {%- if forloop.index0 == initial_media_index -%}
+              {%- assign is_thumb_active = true -%}
+            {%- endif -%}
+
+            <div
+              class="product-gallery__thumb{% if is_thumb_active %} is-active{% endif %}"
+              data-thumb-index="{{ forloop.index0 }}"
+              data-media-id="{{ media.id }}"
+              role="button"
+              tabindex="0"
+              aria-label="View media {{ forloop.index }} of {{ gallery_media.size }}"
+              aria-current="{% if is_thumb_active %}true{% else %}false{% endif %}"
+            >
+              <img
+                src="{{ media | image_url: width: 140, height: 140, crop: 'center' }}"
+                alt="{{ media.alt | default: product.title | escape }}"
+                loading="lazy"
+                width="70"
+                height="70"
+              >
+              {%- if media.media_type == 'video' or media.media_type == 'external_video' -%}
+                <span class="product-gallery__thumb-badge" aria-hidden="true">
+                  {% render 'icon', icon: 'eye', width: 12, height: 12 %}
+                </span>
+              {%- endif -%}
+            </div>
+          {%- endfor -%}
+        </div>
+      </div>
+
+      <button
+        type="button"
+        class="product-gallery__thumbnails-arrow product-gallery__thumbnails-arrow--next"
+        data-thumbnail-next
+        aria-label="Next thumbnails"
+      >
+        {% render 'icon', icon: 'chevron-down', width: 14, height: 14 %}
+      </button>
+    </div>
+  {%- endif -%}
+
+  {%- # Main Gallery Stage -%}
+  <div class="product-gallery__main">
+    {%- # Badges Overlay -%}
+    <div class="product-gallery__badges">
+      <span
+        class="product-gallery__badge product-gallery__badge--sale{% unless is_on_sale %} hidden{% endunless %}"
+        data-gallery-sale-badge
+      >
+        Sale
+      </span>
+      <span
+        class="product-gallery__badge product-gallery__badge--sold-out{% unless is_sold_out %} hidden{% endunless %}"
+        data-gallery-soldout-badge
+      >
+        Sold out
+      </span>
+    </div>
+
+    {%- # Main Viewport & Slides Track -%}
+    <div class="product-gallery__viewport" data-gallery-viewport tabindex="0" aria-label="Product Media Gallery">
+      <div
+        class="product-gallery__track"
+        data-gallery-track
+      >
+        {%- if gallery_media.size > 0 -%}
+          {%- for media in gallery_media -%}
+            {%- assign is_slide_active = false -%}
+            {%- if forloop.index0 == initial_media_index -%}
+              {%- assign is_slide_active = true -%}
+            {%- endif -%}
+
+            <div
+              class="product-gallery__slide{% if is_slide_active %} is-active{% endif %}"
+              data-slide-index="{{ forloop.index0 }}"
+              data-media-id="{{ media.id }}"
+              data-full-src="{{ media | image_url: width: 1600 }}"
+              role="group"
+              aria-roledescription="slide"
+              aria-label="{{ forloop.index }} of {{ gallery_media.size }}"
+            >
+              {%- case media.media_type -%}
+                {%- when 'image' -%}
+                  <div class="product-gallery__media-wrapper product-gallery__media-wrapper--image">
+                    {%- assign media_alt = media.alt | default: product.title | escape -%}
+                    {{
+                      media
+                      | image_url: width: 1200
+                      | image_tag:
+                        loading: 'eager',
+                        class: 'product-gallery__image',
+                        alt: media_alt,
+                        widths: '375, 550, 750, 950, 1200, 1600'
+                    }}
+                  </div>
+
+                {%- when 'video' -%}
+                  <div class="product-gallery__media-wrapper product-gallery__media-wrapper--video">
+                    {{ media | video_tag: controls: true, image_size: '1000x', class: 'product-gallery__video' }}
+                  </div>
+
+                {%- when 'external_video' -%}
+                  <div class="product-gallery__media-wrapper product-gallery__media-wrapper--external">
+                    {{ media | external_video_tag: class: 'product-gallery__external-video' }}
+                  </div>
+
+                {%- else -%}
+                  <div class="product-gallery__media-wrapper">
+                    {%- if media.src != blank or media.preview_image != blank -%}
+                      {%- assign fallback_img = media.preview_image | default: media -%}
+                      {%- assign fallback_alt = fallback_img.alt | default: product.title | escape -%}
+                      {{
+                        fallback_img
+                        | image_url: width: 1200
+                        | image_tag:
+                          loading: 'eager',
+                          class: 'product-gallery__image',
+                          alt: fallback_alt,
+                          widths: '375, 550, 750, 950, 1200, 1600'
+                      }}
+                    {%- else -%}
+                      {{ media | media_tag: class: 'product-gallery__media' }}
+                    {%- endif -%}
+                  </div>
+              {%- endcase -%}
+            </div>
+          {%- endfor -%}
+        {%- else -%}
+          {%- # Fallback Placeholder Image -%}
+          <div class="product-gallery__slide is-active" data-slide-index="0">
+            <div class="product-gallery__media-wrapper product-gallery__placeholder">
+              <svg viewBox="0 0 400 400" width="100%" height="100%" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect width="400" height="400" fill="#f1f5f9"/>
+                <path d="M120 280L180 200L220 250L260 190L320 280H120Z" fill="#cbd5e1"/>
+                <circle cx="160" cy="150" r="25" fill="#cbd5e1"/>
+              </svg>
+            </div>
+          </div>
+        {%- endif -%}
+      </div>
+
+      {%- # Navigation Arrows (shown if multiple media) -%}
+      {%- if gallery_media.size > 1 -%}
+        <button
+          type="button"
+          class="product-gallery__nav-arrow product-gallery__nav-arrow--prev"
+          data-gallery-prev
+          aria-label="Previous slide"
+        >
+          {% render 'icon', icon: 'arrow-left', width: 18, height: 18 %}
+        </button>
+        <button
+          type="button"
+          class="product-gallery__nav-arrow product-gallery__nav-arrow--next"
+          data-gallery-next
+          aria-label="Next slide"
+        >
+          {% render 'icon', icon: 'arrow-right', width: 18, height: 18 %}
+        </button>
+      {%- endif -%}
+
+      {%- # Zoom Lightbox Button (Top Right) -%}
+      {%- if enable_zoom -%}
+        <button
+          type="button"
+          class="product-gallery__zoom-trigger"
+          data-gallery-zoom-trigger
+          aria-label="Enlarge image"
+          title="Click to zoom image"
+        >
+          <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            <line x1="11" y1="8" x2="11" y2="14"></line>
+            <line x1="8" y1="11" x2="14" y2="11"></line>
+          </svg>
+        </button>
+      {%- endif -%}
+    </div>
+
+    {%- # Mobile Slide Dots & Counter -%}
+    {%- if gallery_media.size > 1 -%}
+      <div class="product-gallery__mobile-controls">
+        <div class="product-gallery__dots" data-gallery-dots>
+          {%- for media in gallery_media -%}
+            {%- assign dot_idx = forloop.index0 -%}
+            <button
+              type="button"
+              class="product-gallery__dot{% if dot_idx == initial_media_index %} is-active{% endif %}"
+              data-dot-index="{{ dot_idx }}"
+              aria-label="Go to slide {{ forloop.index }}"
+            ></button>
+          {%- endfor -%}
+        </div>
+        <div class="product-gallery__counter" data-gallery-counter>
+          <span data-counter-current>{{ initial_media_index | plus: 1 }}</span> / {{ gallery_media.size }}
+        </div>
+      </div>
+    {%- endif -%}
+  </div>
+
+  {%- # Thumbnails Strip (Right position on desktop) -%}
+  {%- if thumb_pos == 'right' and gallery_media.size > 1 and desktop_layout == 'slider' -%}
+    <div class="product-gallery__thumbnails product-gallery__thumbnails--right" data-gallery-thumbnails>
+      <button
+        type="button"
+        class="product-gallery__thumbnails-arrow product-gallery__thumbnails-arrow--prev"
+        data-thumbnail-prev
+        aria-label="Previous thumbnails"
+      >
+        {% render 'icon', icon: 'chevron-up', width: 14, height: 14 %}
+      </button>
+
+      <div class="product-gallery__thumbnails-window" data-thumbnails-window>
+        <div class="product-gallery__thumbnails-track" data-thumbnails-track>
+          {%- for media in gallery_media -%}
+            {%- assign is_thumb_active = false -%}
+            {%- if forloop.index0 == initial_media_index -%}
+              {%- assign is_thumb_active = true -%}
+            {%- endif -%}
+
+            <div
+              class="product-gallery__thumb{% if is_thumb_active %} is-active{% endif %}"
+              data-thumb-index="{{ forloop.index0 }}"
+              data-media-id="{{ media.id }}"
+              role="button"
+              tabindex="0"
+              aria-label="View media {{ forloop.index }} of {{ gallery_media.size }}"
+              aria-current="{% if is_thumb_active %}true{% else %}false{% endif %}"
+            >
+              <img
+                src="{{ media | image_url: width: 140, height: 140, crop: 'center' }}"
+                alt="{{ media.alt | default: product.title | escape }}"
+                loading="lazy"
+                width="70"
+                height="70"
+              >
+              {%- if media.media_type == 'video' or media.media_type == 'external_video' -%}
+                <span class="product-gallery__thumb-badge" aria-hidden="true">
+                  {% render 'icon', icon: 'eye', width: 12, height: 12 %}
+                </span>
+              {%- endif -%}
+            </div>
+          {%- endfor -%}
+        </div>
+      </div>
+
+      <button
+        type="button"
+        class="product-gallery__thumbnails-arrow product-gallery__thumbnails-arrow--next"
+        data-thumbnail-next
+        aria-label="Next thumbnails"
+      >
+        {% render 'icon', icon: 'chevron-down', width: 14, height: 14 %}
+      </button>
+    </div>
+  {%- endif -%}
+
+  {%- # Thumbnails Slider (Bottom position on desktop) -%}
+  {%- if thumb_pos == 'bottom' and gallery_media.size > 1 and desktop_layout == 'slider' -%}
+    <div class="product-gallery__thumbnails product-gallery__thumbnails--bottom" data-gallery-thumbnails>
+      <button
+        type="button"
+        class="product-gallery__thumbnails-arrow product-gallery__thumbnails-arrow--prev"
+        data-thumbnail-prev
+        aria-label="Previous thumbnails"
+      >
+        {% render 'icon', icon: 'chevron-left', width: 14, height: 14 %}
+      </button>
+
+      <div class="product-gallery__thumbnails-window" data-thumbnails-window>
+        <div class="product-gallery__thumbnails-track" data-thumbnails-track>
+          {%- for media in gallery_media -%}
+            {%- assign is_thumb_active = false -%}
+            {%- if forloop.index0 == initial_media_index -%}
+              {%- assign is_thumb_active = true -%}
+            {%- endif -%}
+
+            <div
+              class="product-gallery__thumb{% if is_thumb_active %} is-active{% endif %}"
+              data-thumb-index="{{ forloop.index0 }}"
+              data-media-id="{{ media.id }}"
+              role="button"
+              tabindex="0"
+              aria-label="View media {{ forloop.index }} of {{ gallery_media.size }}"
+              aria-current="{% if is_thumb_active %}true{% else %}false{% endif %}"
+            >
+              <img
+                src="{{ media | image_url: width: 140, height: 140, crop: 'center' }}"
+                alt="{{ media.alt | default: product.title | escape }}"
+                loading="lazy"
+                width="70"
+                height="70"
+              >
+              {%- if media.media_type == 'video' or media.media_type == 'external_video' -%}
+                <span class="product-gallery__thumb-badge" aria-hidden="true">
+                  {% render 'icon', icon: 'eye', width: 12, height: 12 %}
+                </span>
+              {%- endif -%}
+            </div>
+          {%- endfor -%}
+        </div>
+      </div>
+
+      <button
+        type="button"
+        class="product-gallery__thumbnails-arrow product-gallery__thumbnails-arrow--next"
+        data-thumbnail-next
+        aria-label="Next thumbnails"
+      >
+        {% render 'icon', icon: 'chevron-right', width: 14, height: 14 %}
+      </button>
+    </div>
+  {%- endif -%}
+
+  {%- # Fullscreen Zoom Lightbox Modal with Slider, Counter & Left/Right Arrows -%}
+  {%- if enable_zoom -%}
+    <div
+      class="product-gallery__modal"
+      data-gallery-modal
+      aria-hidden="true"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Enlarged media viewer"
+    >
+      <div class="product-gallery__modal-overlay" data-gallery-modal-close></div>
+      <div class="product-gallery__modal-content">
+        <div class="product-gallery__modal-header">
+          <button
+            type="button"
+            class="product-gallery__modal-close"
+            data-gallery-modal-close
+            aria-label="Close enlarged view"
+          >
+            {% render 'icon', icon: 'close', width: 22, height: 22 %}
+          </button>
+        </div>
+
+        <div class="product-gallery__modal-stage" data-gallery-modal-stage>
+          <div class="product-gallery__modal-counter" data-modal-counter>
+            <span data-modal-counter-current>{{ initial_media_index | plus: 1 }}</span> / {{ gallery_media.size | default: 1 }}
+          </div>
+
+          {%- if gallery_media.size > 1 -%}
+            <button
+              type="button"
+              class="product-gallery__modal-arrow product-gallery__modal-arrow--prev"
+              data-modal-prev
+              aria-label="Previous slide"
+            >
+              {% render 'icon', icon: 'arrow-left', width: 20, height: 20 %}
+            </button>
+          {%- endif -%}
+
+          <div class="product-gallery__modal-viewport" data-modal-viewport>
+            <div
+              class="product-gallery__modal-track"
+              data-modal-track
+            >
+              {%- for media in gallery_media -%}
+                {%- assign is_modal_slide_active = false -%}
+                {%- if forloop.index0 == initial_media_index -%}
+                  {%- assign is_modal_slide_active = true -%}
+                {%- endif -%}
+
+                <div
+                  class="product-gallery__modal-slide{% if is_modal_slide_active %} is-active{% endif %}"
+                  data-modal-slide-index="{{ forloop.index0 }}"
+                  data-media-id="{{ media.id }}"
+                >
+                  {%- assign modal_img_alt = media.alt | default: product.title | escape -%}
+                  {{
+                    media
+                    | image_url: width: 1600
+                    | image_tag:
+                      loading: 'lazy',
+                      class: 'product-gallery__modal-image',
+                      alt: modal_img_alt,
+                      widths: '600, 900, 1200, 1600'
+                  }}
+                </div>
+              {%- endfor -%}
+            </div>
+          </div>
+
+          {%- if gallery_media.size > 1 -%}
+            <button
+              type="button"
+              class="product-gallery__modal-arrow product-gallery__modal-arrow--next"
+              data-modal-next
+              aria-label="Next slide"
+            >
+              {% render 'icon', icon: 'arrow-right', width: 20, height: 20 %}
+            </button>
+          {%- endif -%}
+        </div>
+      </div>
+    </div>
+  {%- endif -%}
+</product-gallery>

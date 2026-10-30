@@ -78,5 +78,19 @@
     "close": "Close search",
     "recommended_title": "Recommended for you",
     "view_all": "View all"
+  },
+  "general": {
+    "product": "Product"
+  },
+  "products": {
+    "product": {
+      "add_to_cart": "Add to cart",
+      "sold_out": "Sold out",
+      "quantity": "Quantity",
+      "save": "Save",
+      "in_stock": "In stock",
+      "low_stock": "Low stock"
+    }
   }
 }
+

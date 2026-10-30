@@ -19,7 +19,7 @@
           }
           this.submitButton = this.querySelector('[type="submit"]');
           this.submitButtonText = this.submitButton
-            ? this.submitButton.querySelector('.product-card__btn-text') || this.submitButton
+            ? this.submitButton.querySelector('[data-submit-text], .product-card__btn-text') || this.submitButton
             : null;
         }
 
@@ -33,13 +33,15 @@
           }
 
           var submitBtn = this.submitButton || this.form.querySelector('[type="submit"]');
-          var btnText = this.submitButtonText || (submitBtn ? submitBtn.querySelector('.product-card__btn-text') || submitBtn : null);
+          var btnText = this.submitButtonText || (submitBtn ? submitBtn.querySelector('[data-submit-text], .product-card__btn-text') || submitBtn : null);
           var originalText = (btnText && btnText.textContent && btnText.textContent !== 'Error' && btnText.textContent !== 'Adding...')
             ? btnText.textContent
             : 'Add to cart';
 
-          // Validate quantity input before submit
-          var qtyInput = this.form.querySelector('[name="quantity"]');
+          // Validate quantity input before submit (supports inside or outside form via form attr)
+          var qtyInput = this.form.querySelector('[name="quantity"]') ||
+            (this.form.id ? document.querySelector('[name="quantity"][form="' + this.form.id + '"]') : null) ||
+            (this.closest('[data-product-info]') && this.closest('[data-product-info]').querySelector('[data-qty-input]'));
           var qtyVal = qtyInput ? parseInt(qtyInput.value, 10) : 1;
           if (isNaN(qtyVal) || qtyVal < 1) {
             if (qvModal && typeof qvModal.showError === 'function') {
@@ -57,6 +59,9 @@
           }
 
           var formData = new FormData(this.form);
+          if (!formData.has('quantity') && qtyInput) {
+            formData.set('quantity', qtyVal);
+          }
           var cartDrawer = document.querySelector('cart-drawer');
           var cartType = (window.theme && window.theme.cartType) || 'drawer';
 
@@ -177,7 +182,7 @@
     }
 
     var submitBtn = form.querySelector('[type="submit"]');
-    var btnText = submitBtn ? submitBtn.querySelector('.product-card__btn-text') || submitBtn : null;
+    var btnText = submitBtn ? submitBtn.querySelector('[data-submit-text], .product-card__btn-text') || submitBtn : null;
     var originalText = (btnText && btnText.textContent && btnText.textContent !== 'Error' && btnText.textContent !== 'Adding...')
       ? btnText.textContent
       : 'Add to cart';

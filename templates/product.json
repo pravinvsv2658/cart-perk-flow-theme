@@ -11,6 +11,104 @@
   "sections": {
     "main": {
       "type": "product",
+      "blocks": {
+        "vendor": {
+          "type": "vendor",
+          "settings": {
+            "show_sku": false
+          }
+        },
+        "sku": {
+          "type": "sku",
+          "settings": {
+            "prefix": "SKU:"
+          }
+        },
+        "title": {
+          "type": "title",
+          "settings": {}
+        },
+        "price": {
+          "type": "price",
+          "settings": {
+            "show_saving_badge": true,
+            "show_shipping_notice": true
+          }
+        },
+        "inventory": {
+          "type": "inventory_threshold",
+          "settings": {
+            "threshold": 5,
+            "show_inventory_quantity": true
+          }
+        },
+        "variants": {
+          "type": "variants",
+          "settings": {
+            "picker_type": "swatches"
+          }
+        },
+        "quantity": {
+          "type": "quantity_selector",
+          "settings": {
+            "label": "Quantity"
+          }
+        },
+        "buy_buttons": {
+          "type": "buy_buttons",
+          "settings": {
+            "show_quantity_selector": true,
+            "show_dynamic_checkout": true
+          }
+        },
+        "trust_grid": {
+          "type": "trust_grid",
+          "settings": {}
+        },
+        "description": {
+          "type": "description",
+          "settings": {
+            "collapse_content": true,
+            "heading": "Product Details"
+          }
+        },
+        "custom_info_1": {
+          "type": "custom_information",
+          "settings": {
+            "heading": "Shipping & Guarantee",
+            "icon": "package",
+            "content": "<p>All orders are processed and dispatched within 24 hours. We offer complimentary tracking on every package.</p>"
+          }
+        },
+        "custom_info_2": {
+          "type": "custom_information",
+          "settings": {
+            "heading": "Care & Specifications",
+            "icon": "check",
+            "content": "<p>Engineered with premium quality materials. Wipe clean with a damp cloth. Backed by our 30-day satisfaction guarantee.</p>"
+          }
+        },
+        "share": {
+          "type": "share",
+          "settings": {
+            "share_label": "Share:"
+          }
+        }
+      },
+      "block_order": [
+        "vendor",
+        "sku",
+        "title",
+        "price",
+        "inventory",
+        "variants",
+        "buy_buttons",
+        "trust_grid",
+        "description",
+        "custom_info_1",
+        "custom_info_2",
+        "share"
+      ],
       "settings": {}
     }
   },

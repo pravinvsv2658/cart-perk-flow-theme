@@ -1,0 +1,628 @@
+{% doc %}
+  Renders the Product Information component for the Product page.
+  Modular block-based architecture supporting vendor, title, price,
+  inventory threshold, variants, quantity, buy buttons, trust grid,
+  description, unlimited custom information tabs, and social sharing.
+
+  @param {product} product - The Shopify product object
+  @param {variant} [current_variant] - The active variant
+  @param {string} [section_id] - Section identifier for form element IDs
+  @param {block[]} [blocks] - Theme editor blocks from section
+
+  @example
+  {% render 'product-info', product: product, current_variant: current_variant, section_id: section.id, blocks: section.blocks %}
+{% enddoc %}
+
+{%- liquid
+  assign active_variant = current_variant | default: product.selected_or_first_available_variant | default: product.variants.first
+  assign sec_id = section_id | default: 'main-product'
+  assign product_form_id = 'ProductForm-' | append: sec_id
+  assign info_blocks = blocks | default: section.blocks
+
+  assign is_on_sale = false
+  if active_variant.compare_at_price > active_variant.price
+    assign is_on_sale = true
+    assign save_amount = active_variant.compare_at_price | minus: active_variant.price
+  endif
+
+  assign is_sold_out = false
+  unless active_variant.available
+    assign is_sold_out = true
+  endunless
+
+  # Check if quantity_selector block is present
+  assign has_qty_block = false
+  if info_blocks != blank and info_blocks.size > 0
+    for b in info_blocks
+      if b.type == 'quantity_selector'
+        assign has_qty_block = true
+        break
+      endif
+    endfor
+  endif
+-%}
+
+<div class="product-info" data-product-info data-section-id="{{ sec_id }}">
+  {%- if info_blocks != blank and info_blocks.size > 0 -%}
+    {%- for block in info_blocks -%}
+      <div class="product-info__block product-info__block--{{ block.type }}" {{ block.shopify_attributes }}>
+        {%- case block.type -%}
+          {%- when 'vendor' -%}
+            <div class="product-info__top">
+              {%- if product.vendor != blank -%}
+                <div class="product-info__vendor">
+                  <span class="product-info__vendor-text">{{ product.vendor | escape }}</span>
+                </div>
+              {%- endif -%}
+
+              {%- if block.settings.show_sku and active_variant.sku != blank -%}
+                <div class="product-info__sku" data-product-sku>
+                  <span class="product-info__sku-prefix">SKU:</span>
+                  <span class="product-info__sku-value" data-sku-value>{{ active_variant.sku }}</span>
+                </div>
+              {%- endif -%}
+            </div>
+
+          {%- when 'sku' -%}
+            <div class="product-info__sku{% if active_variant.sku == blank %} hidden{% endif %}" data-product-sku>
+              <span class="product-info__sku-prefix">{{ block.settings.prefix | default: 'SKU:' }}</span>
+              <span class="product-info__sku-value" data-sku-value>{{ active_variant.sku }}</span>
+            </div>
+
+          {%- when 'title' -%}
+            <h1 class="product-info__title">{{ product.title | escape }}</h1>
+
+          {%- when 'price' -%}
+            <div class="product-info__pricing" data-price-container>
+              <div class="product-info__prices">
+                <span class="product-info__price" data-product-price>
+                  {{ active_variant.price | money }}
+                </span>
+
+                <s
+                  class="product-info__compare-price{% unless is_on_sale %} hidden{% endunless %}"
+                  data-product-compare-price
+                >
+                  {{ active_variant.compare_at_price | money }}
+                </s>
+
+                {%- if block.settings.show_saving_badge -%}
+                  <span
+                    class="product-info__badge-save{% unless is_on_sale %} hidden{% endunless %}"
+                    data-product-save-badge
+                  >
+                    {%- if is_on_sale -%}
+                      Save {{ save_amount | money }}
+                    {%- endif -%}
+                  </span>
+                {%- endif -%}
+              </div>
+
+              {%- if block.settings.show_shipping_notice -%}
+                <div class="product-info__shipping-notice">
+                  <span class="product-info__shipping-icon" aria-hidden="true">
+                    {% render 'icon', icon: 'package', width: 14, height: 14 %}
+                  </span>
+                  <span>
+                    {{-
+                      block.settings.shipping_notice_text
+                      | default: 'Taxes included. Free shipping on orders over $50.'
+                    -}}
+                  </span>
+                </div>
+              {%- endif -%}
+            </div>
+
+          {%- when 'inventory_threshold' -%}
+            {%- assign inv_threshold = block.settings.threshold | default: 5 -%}
+            {%- assign in_stock_msg = block.settings.in_stock_text | default: 'In stock, ready to dispatch today' -%}
+            {%- assign low_stock_msg = block.settings.low_stock_text | default: 'Low stock — only {quantity} left!' -%}
+            {%- assign sold_out_msg = block.settings.sold_out_text | default: 'Sold out — join waitlist' -%}
+
+            <div
+              class="product-info__inventory"
+              data-inventory-status
+              data-inventory-threshold="{{ inv_threshold }}"
+              data-in-stock-msg="{{ in_stock_msg | escape }}"
+              data-low-stock-msg="{{ low_stock_msg | escape }}"
+              data-sold-out-msg="{{ sold_out_msg | escape }}"
+            >
+              <span
+                class="product-info__inventory-dot{% if is_sold_out %} is-soldout{% elsif active_variant.inventory_quantity > 0 and active_variant.inventory_quantity <= inv_threshold %} is-low-stock{% endif %}"
+              ></span>
+              <span class="product-info__inventory-text" data-inventory-text>
+                {%- if is_sold_out -%}
+                  {{ sold_out_msg }}
+                {%- elsif active_variant.inventory_quantity > 0
+                  and active_variant.inventory_quantity <= inv_threshold
+                -%}
+                  {%- if block.settings.show_inventory_quantity -%}
+                    {%- assign qty_token = 'quantity' | prepend: '{' | append: '}' -%}
+                    {{ low_stock_msg | replace: qty_token, active_variant.inventory_quantity }}
+                  {%- else -%}
+                    Low stock — order soon!
+                  {%- endif -%}
+                {%- else -%}
+                  {{ in_stock_msg }}
+                {%- endif -%}
+              </span>
+            </div>
+
+          {%- when 'variants' -%}
+            {%- unless product.has_only_default_variant -%}
+              {%- assign picker_type = block.settings.picker_type | default: 'swatches' -%}
+              {%- if picker_type == 'dropdown' -%}
+                <div class="product-info__options product-info__options--dropdowns" data-product-options>
+                  {%- for option in product.options_with_values -%}
+                    <div class="product-info__option-group" data-option-group data-index="{{ forloop.index0 }}">
+                      <label class="product-info__option-label" for="Option-{{ sec_id }}-{{ forloop.index0 }}">
+                        <span class="product-info__option-name">{{ option.name }}:</span>
+                        <span class="product-info__option-selected" data-option-selected-label data-selected-value>
+                          {{- option.selected_value -}}
+                        </span>
+                      </label>
+                      <div class="product-info__select-wrapper">
+                        <select
+                          id="Option-{{ sec_id }}-{{ forloop.index0 }}"
+                          class="product-info__select"
+                          name="options[{{ option.name | escape }}]"
+                          data-option-select
+                          data-index="{{ forloop.index0 }}"
+                        >
+                          {%- for value in option.values -%}
+                            <option
+                              value="{{ value | escape }}"
+                              {% if option.selected_value == value %}
+                                selected="selected"
+                              {% endif %}
+                            >
+                              {{ value }}
+                            </option>
+                          {%- endfor -%}
+                        </select>
+                        <span class="product-info__select-chevron" aria-hidden="true">
+                          {% render 'icon', icon: 'chevron-down', width: 14, height: 14 %}
+                        </span>
+                      </div>
+                    </div>
+                  {%- endfor -%}
+                </div>
+              {%- else -%}
+                <div class="product-info__options" data-product-swatches>
+                  {% render 'variant-swatches', product: product, context: 'product', section_id: sec_id %}
+                </div>
+              {%- endif -%}
+
+              <script type="application/json" data-product-variants>
+                {{ product.variants | json }}
+              </script>
+            {%- endunless -%}
+
+          {%- when 'quantity_selector' -%}
+            <div class="product-info__quantity-group">
+              <label class="product-info__quantity-label" for="Quantity-{{ sec_id }}">
+                {{ block.settings.label | default: 'Quantity' }}
+              </label>
+              <div class="product-info__quantity-stepper" data-qty-stepper>
+                <button
+                  type="button"
+                  class="product-info__qty-btn product-info__qty-btn--minus"
+                  data-qty-action="decrease"
+                  aria-label="Decrease quantity"
+                >
+                  −
+                </button>
+                <input
+                  type="number"
+                  id="Quantity-{{ sec_id }}"
+                  form="{{ product_form_id }}"
+                  name="quantity"
+                  class="product-info__qty-input"
+                  value="1"
+                  min="1"
+                  max="99"
+                  aria-label="Product quantity"
+                  data-qty-input
+                >
+                <button
+                  type="button"
+                  class="product-info__qty-btn product-info__qty-btn--plus"
+                  data-qty-action="increase"
+                  aria-label="Increase quantity"
+                >
+                  +
+                </button>
+              </div>
+            </div>
+
+          {%- when 'buy_buttons' -%}
+            <div class="product-info__form-container">
+              <product-form class="product-info__form-wrapper">
+                {% form 'product',
+                  product,
+                  id: product_form_id,
+                  class: 'product-info__form',
+                  novalidate: 'novalidate',
+                  data-type: 'add-to-cart-form'
+                %}
+                  <input
+                    type="hidden"
+                    name="id"
+                    value="{{ active_variant.id }}"
+                    data-product-variant-id
+                  >
+
+                  <div class="product-info__actions-row">
+                    {%- if block.settings.show_quantity_selector != false -%}
+                      <div class="product-info__quantity-stepper" data-qty-stepper>
+                        <button
+                          type="button"
+                          class="product-info__qty-btn product-info__qty-btn--minus"
+                          data-qty-action="decrease"
+                          aria-label="Decrease quantity"
+                        >
+                          −
+                        </button>
+                        <input
+                          type="number"
+                          id="Quantity-{{ sec_id }}"
+                          name="quantity"
+                          class="product-info__qty-input"
+                          value="1"
+                          min="1"
+                          max="99"
+                          aria-label="Product quantity"
+                          data-qty-input
+                        >
+                        <button
+                          type="button"
+                          class="product-info__qty-btn product-info__qty-btn--plus"
+                          data-qty-action="increase"
+                          aria-label="Increase quantity"
+                        >
+                          +
+                        </button>
+                      </div>
+                    {%- else -%}
+                      {%- unless has_qty_block -%}
+                        <input type="hidden" name="quantity" value="1" data-qty-input>
+                      {%- endunless -%}
+                    {%- endif -%}
+
+                    <button
+                      type="submit"
+                      name="add"
+                      class="product-info__submit-btn{% if is_sold_out %} is-disabled{% endif %}"
+                      {% if is_sold_out %}
+                        disabled aria-disabled="true"
+                      {% endif %}
+                      data-submit-button
+                    >
+                      <span class="product-info__submit-icon" aria-hidden="true">
+                        {% render 'icon', icon: 'cart', width: 18, height: 18 %}
+                      </span>
+                      <span class="product-info__submit-text" data-submit-text>
+                        {%- if is_sold_out -%}
+                          Sold out
+                        {%- else -%}
+                          Add to Cart
+                        {%- endif -%}
+                      </span>
+                      <span class="product-info__submit-loader" aria-hidden="true">
+                        <svg
+                          class="icon-spinner"
+                          viewBox="0 0 24 24"
+                          width="18"
+                          height="18"
+                          fill="none"
+                          stroke="currentColor"
+                        >
+                          <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2.5" stroke-opacity="0.3"></circle>
+                          <path d="M12 3a9 9 0 0 1 9 9" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"></path>
+                        </svg>
+                      </span>
+                    </button>
+                  </div>
+
+                  {%- if block.settings.show_dynamic_checkout -%}
+                    <div class="product-info__dynamic-checkout">
+                      {{ form | payment_button }}
+                    </div>
+                  {%- endif -%}
+                {% endform %}
+              </product-form>
+            </div>
+
+          {%- when 'trust_grid' -%}
+            {%- assign trust_icon_1 = block.settings.icon_1 | default: 'package' -%}
+            {%- assign trust_icon_2 = block.settings.icon_2 | default: 'return' -%}
+            {%- assign trust_icon_3 = block.settings.icon_3 | default: 'lock' -%}
+            <div class="product-info__trust-grid">
+              <div class="product-info__trust-item">
+                <span class="product-info__trust-icon">
+                  {% render 'icon', icon: trust_icon_1, width: 20, height: 20 %}
+                </span>
+                <div class="product-info__trust-text">
+                  <strong>{{ block.settings.title_1 | default: 'Free Express Delivery' }}</strong>
+                  <span>{{ block.settings.text_1 | default: 'Dispatched securely with tracking' }}</span>
+                </div>
+              </div>
+
+              <div class="product-info__trust-item">
+                <span class="product-info__trust-icon">
+                  {% render 'icon', icon: trust_icon_2, width: 20, height: 20 %}
+                </span>
+                <div class="product-info__trust-text">
+                  <strong>{{ block.settings.title_2 | default: '30-Day Easy Returns' }}</strong>
+                  <span>{{ block.settings.text_2 | default: 'Love it or return it for a refund' }}</span>
+                </div>
+              </div>
+
+              <div class="product-info__trust-item">
+                <span class="product-info__trust-icon">
+                  {% render 'icon', icon: trust_icon_3, width: 20, height: 20 %}
+                </span>
+                <div class="product-info__trust-text">
+                  <strong>{{ block.settings.title_3 | default: 'Secure 256-Bit Checkout' }}</strong>
+                  <span>{{ block.settings.text_3 | default: 'Encrypted and guaranteed safe payment' }}</span>
+                </div>
+              </div>
+            </div>
+
+          {%- when 'description' -%}
+            {%- if product.description != blank -%}
+              {%- if block.settings.collapse_content -%}
+                <div class="product-info__accordions">
+                  <details class="product-info__accordion" open>
+                    <summary class="product-info__accordion-header">
+                      <span class="product-info__accordion-title">
+                        {{- block.settings.heading | default: 'Product Details' | escape -}}
+                      </span>
+                      <span class="product-info__accordion-chevron" aria-hidden="true">
+                        {% render 'icon', icon: 'chevron-down', width: 16, height: 16 %}
+                      </span>
+                    </summary>
+                    <div class="product-info__accordion-body rte">
+                      {{ product.description }}
+                    </div>
+                  </details>
+                </div>
+              {%- else -%}
+                <div class="product-info__description rte">
+                  {{ product.description }}
+                </div>
+              {%- endif -%}
+            {%- endif -%}
+
+          {%- when 'custom_information' -%}
+            <div class="product-info__accordions">
+              <details
+                class="product-info__accordion"
+                {% if block.settings.open_by_default %}
+                  open
+                {% endif %}
+              >
+                <summary class="product-info__accordion-header">
+                  <div class="product-info__accordion-heading-group">
+                    {%- if block.settings.icon != blank and block.settings.icon != 'none' -%}
+                      <span class="product-info__accordion-icon" aria-hidden="true">
+                        {% render 'icon', icon: block.settings.icon, width: 16, height: 16 %}
+                      </span>
+                    {%- endif -%}
+                    <span class="product-info__accordion-title">
+                      {{- block.settings.heading | default: 'Information' | escape -}}
+                    </span>
+                  </div>
+                  <span class="product-info__accordion-chevron" aria-hidden="true">
+                    {% render 'icon', icon: 'chevron-down', width: 16, height: 16 %}
+                  </span>
+                </summary>
+                <div class="product-info__accordion-body rte">
+                  {%- if block.settings.content != blank -%}
+                    {{ block.settings.content }}
+                  {%- endif -%}
+                  {%- if block.settings.page != blank -%}
+                    {{ block.settings.page.content }}
+                  {%- endif -%}
+                </div>
+              </details>
+            </div>
+
+          {%- when 'share' -%}
+            <div class="product-info__share" data-social-share>
+              {%- if block.settings.share_label != blank -%}
+                <span class="product-info__share-title">{{ block.settings.share_label }}</span>
+              {%- endif -%}
+
+              <div class="product-info__share-buttons">
+                {%- assign share_url = shop.url | append: product.url -%}
+                {%- assign share_title = product.title | url_param_escape -%}
+                {%- assign share_image = product.featured_image | image_url: width: 1024 -%}
+
+                {%- if block.settings.share_facebook -%}
+                  <a
+                    href="https://www.facebook.com/sharer.php?u={{ share_url | url_encode }}"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="product-info__share-btn product-info__share-btn--facebook"
+                    aria-label="Share on Facebook"
+                    title="Share on Facebook"
+                  >
+                    {% render 'icon', icon: 'facebook', width: 16, height: 16 %}
+                  </a>
+                {%- endif -%}
+
+                {%- if block.settings.share_twitter -%}
+                  <a
+                    href="https://twitter.com/intent/tweet?text={{ share_title }}&url={{ share_url | url_encode }}"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="product-info__share-btn product-info__share-btn--twitter"
+                    aria-label="Share on X (Twitter)"
+                    title="Share on X (Twitter)"
+                  >
+                    {% render 'icon', icon: 'twitter', width: 16, height: 16 %}
+                  </a>
+                {%- endif -%}
+
+                {%- if block.settings.share_pinterest and product.featured_image != blank -%}
+                  <a
+                    href="https://pinterest.com/pin/create/button/?url={{ share_url | url_encode }}&media={{ share_image | url_encode }}&description={{ share_title }}"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="product-info__share-btn product-info__share-btn--pinterest"
+                    aria-label="Pin on Pinterest"
+                    title="Pin on Pinterest"
+                  >
+                    {% render 'icon', icon: 'pinterest', width: 16, height: 16 %}
+                  </a>
+                {%- endif -%}
+
+                {%- if block.settings.share_copy_link -%}
+                  <button
+                    type="button"
+                    class="product-info__share-btn product-info__share-btn--copy"
+                    data-share-copy
+                    data-share-url="{{ share_url }}"
+                    aria-label="Copy product link"
+                    title="Copy product link"
+                  >
+                    {% render 'icon', icon: 'link', width: 16, height: 16 %}
+                    <span class="product-info__share-tooltip" data-share-tooltip>Copied!</span>
+                  </button>
+                {%- endif -%}
+              </div>
+            </div>
+        {%- endcase -%}
+      </div>
+    {%- endfor -%}
+  {%- else -%}
+    {%- # Fallback standard layout if no blocks configured -%}
+    {%- if product.vendor != blank -%}
+      <div class="product-info__top">
+        <div class="product-info__vendor">
+          <span class="product-info__vendor-text">{{ product.vendor | escape }}</span>
+        </div>
+      </div>
+    {%- endif -%}
+
+    <h1 class="product-info__title">{{ product.title | escape }}</h1>
+
+    <div class="product-info__pricing" data-price-container>
+      <div class="product-info__prices">
+        <span class="product-info__price" data-product-price>
+          {{ active_variant.price | money }}
+        </span>
+        <s class="product-info__compare-price{% unless is_on_sale %} hidden{% endunless %}" data-product-compare-price>
+          {{ active_variant.compare_at_price | money }}
+        </s>
+        <span class="product-info__badge-save{% unless is_on_sale %} hidden{% endunless %}" data-product-save-badge>
+          {%- if is_on_sale -%}Save {{ save_amount | money }}{%- endif -%}
+        </span>
+      </div>
+    </div>
+
+    <div class="product-info__inventory" data-inventory-status data-inventory-threshold="5">
+      <span class="product-info__inventory-dot{% if is_sold_out %} is-soldout{% endif %}"></span>
+      <span class="product-info__inventory-text" data-inventory-text>
+        {%- if is_sold_out -%}
+          Sold out — join waitlist
+        {%- elsif active_variant.inventory_quantity > 0 and active_variant.inventory_quantity <= 5 -%}
+          Low stock — only {{ active_variant.inventory_quantity }} left!
+        {%- else -%}
+          In stock, ready to dispatch today
+        {%- endif -%}
+      </span>
+    </div>
+
+    {%- unless product.has_only_default_variant -%}
+      <div class="product-info__options" data-product-swatches>
+        {% render 'variant-swatches', product: product, context: 'product', section_id: sec_id %}
+      </div>
+      <script type="application/json" data-product-variants>
+        {{ product.variants | json }}
+      </script>
+    {%- endunless -%}
+
+    <div class="product-info__form-container">
+      <product-form class="product-info__form-wrapper">
+        {% form 'product',
+          product,
+          id: product_form_id,
+          class: 'product-info__form',
+          novalidate: 'novalidate',
+          data-type: 'add-to-cart-form'
+        %}
+          <input type="hidden" name="id" value="{{ active_variant.id }}" data-product-variant-id>
+          <div class="product-info__actions">
+            <div class="product-info__quantity-group">
+              <label class="product-info__quantity-label" for="Quantity-{{ sec_id }}">Quantity</label>
+              <div class="product-info__quantity-stepper" data-qty-stepper>
+                <button
+                  type="button"
+                  class="product-info__qty-btn product-info__qty-btn--minus"
+                  data-qty-action="decrease"
+                  aria-label="Decrease quantity"
+                >
+                  −
+                </button>
+                <input
+                  type="number"
+                  id="Quantity-{{ sec_id }}"
+                  name="quantity"
+                  class="product-info__qty-input"
+                  value="1"
+                  min="1"
+                  max="99"
+                  aria-label="Product quantity"
+                  data-qty-input
+                >
+                <button
+                  type="button"
+                  class="product-info__qty-btn product-info__qty-btn--plus"
+                  data-qty-action="increase"
+                  aria-label="Increase quantity"
+                >
+                  +
+                </button>
+              </div>
+            </div>
+            <button
+              type="submit"
+              name="add"
+              class="product-info__submit-btn{% if is_sold_out %} is-disabled{% endif %}"
+              {% if is_sold_out %}
+                disabled aria-disabled="true"
+              {% endif %}
+              data-submit-button
+            >
+              <span class="product-info__submit-icon" aria-hidden="true">
+                {%- render 'icon', icon: 'cart', width: 18, height: 18 -%}
+              </span>
+              <span class="product-info__submit-text" data-submit-text>
+                {%- if is_sold_out %}Sold out{% else %}Add to Cart{% endif -%}
+              </span>
+            </button>
+          </div>
+          <div class="product-info__dynamic-checkout">
+            {{ form | payment_button }}
+          </div>
+        {% endform %}
+      </product-form>
+    </div>
+
+    {%- if product.description != blank -%}
+      <div class="product-info__accordions">
+        <details class="product-info__accordion" open>
+          <summary class="product-info__accordion-header">
+            <span class="product-info__accordion-title">Product Details</span>
+            <span class="product-info__accordion-chevron" aria-hidden="true">
+              {%- render 'icon', icon: 'chevron-down', width: 16, height: 16 -%}
+            </span>
+          </summary>
+          <div class="product-info__accordion-body rte">{{ product.description }}</div>
+        </details>
+      </div>
+    {%- endif -%}
+  {%- endif -%}
+</div>
